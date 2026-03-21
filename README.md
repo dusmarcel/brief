@@ -13,6 +13,14 @@ Danach im Browser öffnen:
 
 - `http://127.0.0.1:8000`
 
+## Entwicklung mit Docker
+
+```bash
+docker compose up --build
+```
+
+Im Dev-Container läuft `watchmedo` mit Polling, damit Änderungen an `*.py`, `*.html`, `*.js`, `*.css` und `*.json` auf gemounteten Host-Dateien auch unter Docker Desktop zuverlässig erkannt werden. Danach sollte ein Neuladen im Browser genügen.
+
 ## Funktion
 
 - Eingabe: PLZ (z. B. `10435`)

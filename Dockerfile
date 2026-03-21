@@ -14,7 +14,12 @@ FROM runtime AS dev
 
 RUN pip install --no-cache-dir "watchdog[watchmedo]"
 
+ENV WATCHDOG_FORCE_POLLING=true
+ENV WATCHDOG_POLLING_INTERVAL=1
+
 CMD ["watchmedo", "auto-restart", \
+     "--debug-force-polling", \
+     "--interval=1", \
      "--patterns=*.py;*.html;*.js;*.css;*.json", \
      "--recursive", \
      "--", \

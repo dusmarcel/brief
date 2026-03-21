@@ -3,22 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bundestagsabgeordnete nach PLZ</title>
+    <title>Bundestagsabgeordnete nach Ort oder PLZ</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="header">
-        <h1>PLZ → Bundestagsabgeordnete</h1>
-        <p>Postleitzahl eingeben und direkt die Abgeordneten aus dem zuständigen Wahlkreis sehen.</p>
+        <h1>Ort oder PLZ → Bundestagsabgeordnete</h1>
+        <p>Suche nach PLZ, Stadt, Gemeinde, Landkreis oder Bundesland und wähle bei Bedarf den passenden Vorschlag aus.</p>
       </header>
 
       <form id="search-form" class="search-form">
-        <label for="zip">Postleitzahl</label>
+        <label for="search-query">Ort, Landkreis, Bundesland oder PLZ</label>
         <div class="input-row">
-          <input id="zip" name="zip" inputmode="numeric" maxlength="5" pattern="\d{5}" placeholder="z. B. 10435" title="Bitte 5-stellige Postleitzahl eingeben, z. B. 10435" />
+          <input id="search-query" name="q" autocomplete="off" placeholder="z. B. 10435, Wesel, Kreis Wesel oder Hessen" title="PLZ, Stadt, Gemeinde, Landkreis oder Bundesland eingeben" />
+          <input id="search-target" name="target" type="hidden" />
           <button type="submit">Suchen</button>
         </div>
+        <div id="suggestions" class="suggestions" hidden></div>
       </form>
 
       <section id="status" class="status" aria-live="polite"></section>
