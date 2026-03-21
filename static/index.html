@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bundestagsabgeordnete nach PLZ</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="header">
+        <h1>PLZ → Bundestagsabgeordnete</h1>
+        <p>Postleitzahl eingeben und direkt die Abgeordneten aus dem zuständigen Wahlkreis sehen.</p>
+      </header>
+
+      <form id="search-form" class="search-form">
+        <label for="zip">Postleitzahl</label>
+        <div class="input-row">
+          <input id="zip" name="zip" inputmode="numeric" maxlength="5" pattern="\d{5}" placeholder="z. B. 10435" title="Bitte 5-stellige Postleitzahl eingeben, z. B. 10435" />
+          <button type="submit">Suchen</button>
+        </div>
+      </form>
+
+      <section id="status" class="status" aria-live="polite"></section>
+      <section id="result" class="result-list"></section>
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

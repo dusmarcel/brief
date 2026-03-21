@@ -1,0 +1,110 @@
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #162032;
+  --muted: #607089;
+  --brand: #0f6ed3;
+  --brand-strong: #0a4a8f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at 20% 10%, #edf3fd, transparent 45%), linear-gradient(180deg, #f7fafc, #eef2f8);
+  color: var(--text);
+}
+
+.app-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--brand-strong);
+}
+
+.header p {
+  margin-top: 0.35rem;
+  color: var(--muted);
+}
+
+.search-form {
+  margin-top: 1.5rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-form input {
+  flex: 1;
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+.search-form button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.search-form button:hover {
+  background: var(--brand-strong);
+}
+
+.status {
+  margin-top: 1rem;
+  min-height: 1.4rem;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid #dbe5f5;
+  border-left: 5px solid var(--brand);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  box-shadow: 0 8px 20px rgba(13, 31, 58, 0.05);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.meta {
+  margin: 0.5rem 0;
+  line-height: 1.45;
+}
+
+.links a {
+  margin-right: 1rem;
+}
+
+.notice {
+  margin-top: 1rem;
+  color: #6f2b2b;
+  background: #fff2f2;
+  border: 1px solid #ffd1d1;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+}
