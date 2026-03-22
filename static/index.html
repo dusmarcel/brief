@@ -100,7 +100,7 @@
         <div class="action-grid">
           <section class="letter-preview-block">
             <h2>Download</h2>
-            <p class="muted">Erzeuge die Schreiben wie bisher als ZIP-Archiv.</p>
+            <p class="muted">Erzeuge die Schreiben als ZIP-Archiv. Du kannst sie dann herunterladen, ausdrucken und postalisch versenden.</p>
             <button id="download-letters" type="button">Schreiben herunterladen</button>
           </section>
 
@@ -110,6 +110,8 @@
               Für jede ausgewählte Person wird eine eigene E-Mail vorbereitet. Je nach Mailprogramm werden
               Absenderangaben aus dem Formular als `From` und/oder `Reply-To` übernommen.
             </p>
+            <button id="prepare-all-emails" type="button">E-Mails für alle vorbereiten</button>
+            <section id="email-status" class="status" aria-live="polite"></section>
             <div id="email-actions" class="email-actions"></div>
           </section>
         </div>

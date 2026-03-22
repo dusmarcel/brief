@@ -369,6 +369,21 @@ body {
   margin-top: 1rem;
 }
 
+#prepare-all-emails {
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#prepare-all-emails:hover,
+#prepare-all-emails:focus-visible {
+  background: var(--brand-strong);
+}
+
 .email-action {
   background: #fff;
   border: 1px solid #dbe5f5;

@@ -40,6 +40,8 @@ const letterPreview = document.getElementById("letter-preview");
 const backToStep1Button = document.getElementById("back-to-step-1");
 const backToStep2Button = document.getElementById("back-to-step-2");
 const step2Status = document.getElementById("step-2-status");
+const prepareAllEmailsButton = document.getElementById("prepare-all-emails");
+const emailStatus = document.getElementById("email-status");
 const emailActions = document.getElementById("email-actions");
 const downloadStatus = document.getElementById("download-status");
 const downloadLettersButton = document.getElementById("download-letters");
@@ -150,7 +152,7 @@ function buildMailtoHref(member, sender) {
     params.set("reply-to", sender.email);
     params.set("from", sender.email);
   }
-  return `mailto:${encodeURIComponent(member.email)}?${params.toString()}`;
+  return `mailto:${encodeURIComponent(member.email)}?${params.toString().replaceAll("+", "%20")}`;
 }
 
 function renderEmailActions() {
@@ -158,18 +160,27 @@ function renderEmailActions() {
   const selected = [...state.selectedMembers.values()];
 
   if (!selected.length) {
+    prepareAllEmailsButton.disabled = true;
+    emailStatus.textContent = "";
     emailActions.innerHTML = "<p class=\"muted\">Noch keine Empfänger*innen ausgewählt.</p>";
     return;
   }
 
+  const emailableCount = selected.filter((member) => member.email).length;
+  prepareAllEmailsButton.disabled = emailableCount === 0;
+  emailStatus.textContent = emailableCount
+    ? `${emailableCount} E-Mail${emailableCount === 1 ? "" : "s"} können vorbereitet werden.`
+    : "Für die Auswahl sind aktuell keine E-Mail-Adressen vorhanden.";
+
   emailActions.innerHTML = selected
     .map((member) => {
       const label = member.fullName || member.displayName || member.name || "Unbekannte Person";
+      const factionLabel = member.faction ? `${label} (${member.faction})` : label;
       const email = member.email;
       if (email) {
         return `
           <div class="email-action">
-            <strong>${escapeHtml(label)}</strong>
+            <strong>${escapeHtml(factionLabel)}</strong>
             <p>${escapeHtml(email)}</p>
             <a class="action-link" href="${escapeHtml(buildMailtoHref(member, sender))}">E-Mail vorbereiten</a>
           </div>
@@ -178,7 +189,7 @@ function renderEmailActions() {
       if (member.contactFormUrl) {
         return `
           <div class="email-action">
-            <strong>${escapeHtml(label)}</strong>
+            <strong>${escapeHtml(factionLabel)}</strong>
             <p>Keine E-Mail-Adresse verfügbar. Es gibt aber ein Kontaktformular.</p>
             <a class="action-link" href="${escapeHtml(member.contactFormUrl)}" target="_blank" rel="noopener noreferrer">Kontaktformular öffnen</a>
           </div>
@@ -186,12 +197,33 @@ function renderEmailActions() {
       }
       return `
         <div class="email-action">
-          <strong>${escapeHtml(label)}</strong>
+          <strong>${escapeHtml(factionLabel)}</strong>
           <p>Für diese Person ist aktuell weder eine E-Mail-Adresse noch ein Kontaktformular hinterlegt.</p>
         </div>
       `;
     })
     .join("");
+}
+
+function prepareAllEmails() {
+  const sender = getSenderPayload();
+  const selected = [...state.selectedMembers.values()];
+  const links = selected
+    .map((member) => buildMailtoHref(member, sender))
+    .filter(Boolean);
+
+  if (!links.length) {
+    emailStatus.textContent = "Für die Auswahl sind aktuell keine E-Mail-Adressen vorhanden.";
+    return;
+  }
+
+  emailStatus.textContent = `Es werden jetzt ${links.length} einzelne E-Mail-Entwürfe vorbereitet. Je nach Browser musst du weitere Fenster bestätigen.`;
+
+  links.forEach((href, index) => {
+    window.setTimeout(() => {
+      window.location.href = href;
+    }, index * 500);
+  });
 }
 
 function clearSuggestions() {
@@ -618,6 +650,7 @@ async function downloadLetters() {
 }
 
 downloadLettersButton.addEventListener("click", downloadLetters);
+prepareAllEmailsButton.addEventListener("click", prepareAllEmails);
 
 syncStepUi();
 updateSelectionInfo();
