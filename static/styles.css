@@ -35,6 +35,31 @@ body {
   color: var(--muted);
 }
 
+.stepper {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.step-chip {
+  background: rgba(15, 110, 211, 0.08);
+  color: #426384;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.step-chip.is-active {
+  background: rgba(15, 110, 211, 0.14);
+  color: #0a4a8f;
+  font-weight: 700;
+}
+
+.step-panel {
+  margin-top: 1.4rem;
+}
+
 .search-form {
   margin-top: 1.5rem;
 }
@@ -70,10 +95,65 @@ body {
   background: var(--brand-strong);
 }
 
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.step-actions button:not(.ghost-button) {
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.step-actions button:not(.ghost-button):hover {
+  background: var(--brand-strong);
+}
+
+.secondary-button,
+.ghost-button {
+  border-radius: 10px;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.secondary-button {
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+}
+
+.secondary-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ghost-button {
+  border: 1px solid #cbd7e8;
+  background: #fff;
+  color: var(--text);
+}
+
 .status {
   margin-top: 1rem;
   min-height: 1.4rem;
   color: var(--muted);
+}
+
+.selection-info {
+  margin-top: 1rem;
+  background: #edf5ff;
+  border: 1px solid #d7e6fb;
+  border-radius: 10px;
+  color: #21466b;
+  padding: 0.7rem 0.9rem;
 }
 
 .suggestions {
@@ -136,6 +216,37 @@ body {
   box-shadow: 0 8px 20px rgba(13, 31, 58, 0.05);
 }
 
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.selectable-card {
+  margin-top: 0;
+  border-left-width: 1px;
+}
+
+.selectable-card.is-selected {
+  border-color: #9cc4f4;
+  box-shadow: 0 10px 24px rgba(15, 110, 211, 0.12);
+}
+
+.selection-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.8rem;
+  color: #36516f;
+  font-size: 0.95rem;
+}
+
+.selection-toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .card h3 {
   margin: 0;
   font-size: 1.2rem;
@@ -163,6 +274,109 @@ body {
   padding: 0.65rem 0.9rem;
 }
 
+.selection-summary,
+.letter-preview-block {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid #dbe5f5;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(13, 31, 58, 0.04);
+}
+
+.selection-summary h2,
+.letter-preview-block h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.15rem;
+}
+
+.selected-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.selected-pill {
+  background: #eef5ff;
+  border: 1px solid #d8e5f7;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.selected-pill span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.letter-form {
+  margin-top: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.form-grid label span {
+  font-size: 0.95rem;
+}
+
+.form-grid input,
+.form-grid textarea {
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 400;
+  background: #fff;
+  color: var(--text);
+}
+
+.form-grid textarea {
+  resize: vertical;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.letter-preview-block {
+  margin-top: 1rem;
+}
+
+.letter-preview {
+  background: #fff;
+  border: 1px solid #e2e9f4;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.letter-preview p {
+  margin: 0.95rem 0 0;
+  line-height: 1.55;
+}
+
+.preview-meta {
+  white-space: pre-line;
+  line-height: 1.55;
+  margin-top: 0.9rem;
+}
+
+.preview-meta:first-child {
+  margin-top: 0;
+}
+
 .page-footer {
   margin-top: 2.25rem;
   padding-top: 1rem;
@@ -186,6 +400,18 @@ body {
 @media (max-width: 640px) {
   .input-row {
     flex-direction: column;
+  }
+
+  .step-actions {
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
   }
 
   .search-form button {

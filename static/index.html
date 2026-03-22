@@ -3,28 +3,89 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bundestagsabgeordnete nach Ort oder PLZ</title>
+    <title>Briefaktion der Rechtsberater*innenkonferenz</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="header">
-        <h1>Ort oder PLZ → Bundestagsabgeordnete</h1>
-        <p>Suche nach PLZ, Stadt, Gemeinde, Landkreis oder Bundesland und wähle bei Bedarf den passenden Vorschlag aus.</p>
+        <h1>
+          Willkommen bei der Briefaktion der
+          <a href="https://rechtsberaterkonferenz.de" target="_blank" rel="noopener noreferrer">Rechtsberater*innenkonferenz</a>
+          zum Erhalt der unabhängigen Asylverfahrensberatung!
+        </h1>
+        <p>
+          Vielen Dank, dass du dich an unserer Aktion zur Rettung der
+          <a href="https://dejure.org/gesetze/AsylG/12a.html" target="_blank" rel="noopener noreferrer">behördenunabhängigen Asylverfahrensberatung</a>
+          (AVB) beteiligen möchtest. Auf dieser Seite kannst du in drei einfachen Schritten ganz schnell Schreiben
+          erstellen, die du an Bundestagsabgeordnete aus deiner Region schicken kannst, um ihnen die Bedeutung der
+          AVB zu vermitteln. Wähle im ersten Schritt bitte die richtigen Bundestagsabgeordneten aus.
+        </p>
       </header>
 
-      <form id="search-form" class="search-form">
-        <label for="search-query">Ort, Landkreis, Bundesland oder PLZ</label>
-        <div class="input-row">
-          <input id="search-query" name="q" autocomplete="off" placeholder="z. B. 10435, Wesel, Kreis Wesel oder Hessen" title="PLZ, Stadt, Gemeinde, Landkreis oder Bundesland eingeben" />
-          <input id="search-target" name="target" type="hidden" />
-          <button type="submit">Suchen</button>
-        </div>
-        <div id="suggestions" class="suggestions" hidden></div>
-      </form>
+      <nav class="stepper" aria-label="Prozessschritte">
+        <div class="step-chip is-active" id="step-chip-1">1. Abgeordnete auswählen</div>
+        <div class="step-chip" id="step-chip-2">2. Angaben und Download</div>
+      </nav>
 
-      <section id="status" class="status" aria-live="polite"></section>
-      <section id="result" class="result-list"></section>
+      <section id="step-1" class="step-panel">
+        <form id="search-form" class="search-form">
+          <label for="search-query">Ort, Landkreis, Bundesland oder PLZ</label>
+          <div class="input-row">
+            <input id="search-query" name="q" autocomplete="off" placeholder="z. B. 10435, Wesel, Kreis Wesel oder Hessen" title="PLZ, Stadt, Gemeinde, Landkreis oder Bundesland eingeben" />
+            <input id="search-target" name="target" type="hidden" />
+            <button type="submit">Suchen</button>
+          </div>
+          <div id="suggestions" class="suggestions" hidden></div>
+        </form>
+
+        <section id="status" class="status" aria-live="polite"></section>
+        <section id="selection-info" class="selection-info" hidden></section>
+        <section id="result" class="result-list"></section>
+        <div class="step-actions">
+          <button id="to-step-2" class="secondary-button" type="button" disabled>Weiter</button>
+        </div>
+      </section>
+
+      <section id="step-2" class="step-panel" hidden>
+        <div class="selection-summary">
+          <h2>Ausgewählte Empfänger*innen</h2>
+          <div id="selected-members" class="selected-members"></div>
+        </div>
+
+        <form id="letter-form" class="letter-form">
+          <div class="form-grid">
+            <label>
+              <span>Name *</span>
+              <input id="sender-name" name="name" required />
+            </label>
+            <label>
+              <span>Zusatz zum Namen</span>
+              <input id="sender-name-extra" name="nameExtra" placeholder="z. B. Rechtsanwältin, MdL a. D." />
+            </label>
+            <label class="full-width">
+              <span>Anschrift *</span>
+              <textarea id="sender-address" name="address" rows="4" required placeholder="Straße Hausnummer&#10;PLZ Ort"></textarea>
+            </label>
+            <label class="full-width">
+              <span>E-Mail-Adresse *</span>
+              <input id="sender-email" name="email" type="email" required />
+            </label>
+          </div>
+
+          <div class="letter-preview-block">
+            <h2>Text des Schreibens</h2>
+            <div id="letter-preview" class="letter-preview"></div>
+          </div>
+
+          <div class="step-actions">
+            <button id="back-to-step-1" class="ghost-button" type="button">Zurück</button>
+            <button id="download-letters" type="submit">Weiter</button>
+          </div>
+        </form>
+
+        <section id="download-status" class="status" aria-live="polite"></section>
+      </section>
 
       <footer class="page-footer">
         <a

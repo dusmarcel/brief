@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import http.server
+import io
 import json
 import os
 import re
 import unicodedata
 import urllib.parse
 import urllib.request
+import zipfile
+from datetime import date
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -15,6 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "wks.json"
 STATIC_DIR = BASE_DIR / "static"
 BUNDESTAG_BASE = "https://www.bundestag.de"
+LETTER_BODY = (
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n"
+    "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+    "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\n"
+    "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+)
 
 
 def _normalize_zip(code: str) -> str:
@@ -71,6 +80,65 @@ def _slugify_email_part(value: str) -> str:
 def _strip_leading_titles(value: str) -> str:
     title_pattern = r"^(?:(?:dr|prof|professor|frhr|freiherr)\.?\s+)+"
     return re.sub(title_pattern, "", (value or "").strip(), flags=re.I).strip()
+
+
+def _normalize_name_spacing(value: str) -> str:
+    return re.sub(r"\s+", " ", (value or "").strip()).strip()
+
+
+def _merge_name_particles(first: str, last: str) -> Tuple[str, str]:
+    particles = {"von", "van", "de", "del", "den", "der", "zu", "zur", "zum", "di", "du", "la", "le"}
+    first_tokens = [token for token in re.split(r"\s+", _normalize_name_spacing(first)) if token]
+    last_tokens = [token for token in re.split(r"\s+", _normalize_name_spacing(last)) if token]
+
+    while len(first_tokens) > 1 and first_tokens[-1].lower() in particles:
+        last_tokens.insert(0, first_tokens.pop())
+
+    return " ".join(first_tokens), " ".join(last_tokens)
+
+
+def _format_member_display_name(raw_name: str, first: str, last: str) -> str:
+    normalized_raw = _normalize_name_spacing(raw_name)
+    normalized_first = _normalize_name_spacing(first)
+    normalized_last = _normalize_name_spacing(last)
+
+    if "," in normalized_raw and normalized_last:
+        return f"{normalized_last}, {normalized_first}" if normalized_first else normalized_last
+    if normalized_first and normalized_last:
+        return f"{normalized_first} {normalized_last}"
+    return normalized_raw or normalized_first or normalized_last
+
+
+def _slugify_filename(value: str) -> str:
+    slug = _slugify_email_part(value).replace("-", "_")
+    return slug or "dokument"
+
+
+def _split_address_lines(value: str) -> List[str]:
+    text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
+    if "\n" in text:
+        return [line.strip() for line in text.split("\n") if line.strip()]
+    return [part.strip() for part in text.split(",") if part.strip()]
+
+
+def _rtf_escape(value: str) -> str:
+    escaped: List[str] = []
+    for char in value or "":
+        code = ord(char)
+        if char == "\\":
+            escaped.append(r"\\")
+        elif char == "{":
+            escaped.append(r"\{")
+        elif char == "}":
+            escaped.append(r"\}")
+        elif char == "\n":
+            escaped.append(r"\line ")
+        elif 32 <= code <= 126:
+            escaped.append(char)
+        else:
+            signed = code if code <= 32767 else code - 65536
+            escaped.append(rf"\u{signed}?")
+    return "".join(escaped)
 
 
 def _pick_first(obj: dict, keys: List[str], default=None):
@@ -174,6 +242,7 @@ class BundestagData:
         self.data = data
         self.profile_cache: Dict[str, dict] = {}
         self.constituency_map: Dict[str, dict] = {}
+        self.member_map: Dict[str, dict] = {}
         self.search_targets: Dict[str, dict] = {}
         self._build_search_index()
 
@@ -231,13 +300,14 @@ class BundestagData:
             constituency = self.constituency_map.get(constituency_id)
             if not constituency:
                 continue
-            for member in constituency["members"]:
-                if not isinstance(member, dict):
+            for member_meta in constituency["members"]:
+                if not isinstance(member_meta, dict):
                     continue
                 result = self._build_member_result(
-                    member,
+                    member_meta["raw"],
                     constituency["state"],
                     constituency["name"],
+                    member_meta["id"],
                 )
                 key = (
                     result["name"],
@@ -255,6 +325,49 @@ class BundestagData:
         if not target:
             return None
         return self._serialize_target(target)
+
+    def get_members_by_ids(self, member_ids: List[str]) -> List[dict]:
+        results: List[dict] = []
+        seen: Set[str] = set()
+        for member_id in member_ids:
+            if member_id in seen:
+                continue
+            seen.add(member_id)
+            member_meta = self.member_map.get(member_id)
+            if not member_meta:
+                continue
+            results.append(
+                self._build_member_result(
+                    member_meta["raw"],
+                    member_meta["state"],
+                    member_meta["constituency"],
+                    member_id,
+                )
+            )
+        return results
+
+    def build_letter_archive(self, member_ids: List[str], sender: dict) -> bytes:
+        recipients = self.get_members_by_ids(member_ids)
+        if not recipients:
+            raise ValueError("Bitte mindestens eine Empfängerin oder einen Empfänger auswählen.")
+
+        sender_name = (sender.get("name") or "").strip()
+        sender_extra = (sender.get("nameExtra") or "").strip()
+        sender_address = (sender.get("address") or "").strip()
+        sender_email = (sender.get("email") or "").strip()
+
+        if not sender_name or not sender_address or not sender_email:
+            raise ValueError("Bitte Name, Anschrift und E-Mail-Adresse angeben.")
+
+        archive = io.BytesIO()
+        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for index, recipient in enumerate(recipients, start=1):
+                filename = self._build_letter_filename(index, recipient)
+                document = self._render_letter_rtf(recipient, sender_name, sender_extra, sender_address, sender_email)
+                zf.writestr(filename, document.encode("ascii"))
+
+        archive.seek(0)
+        return archive.read()
 
     def _build_search_index(self) -> None:
         federal_states = self.data.get("federalStates") or self.data.get("federal_states") or []
@@ -338,12 +451,27 @@ class BundestagData:
 
     def _register_constituency(self, state_name: str, constituency: dict) -> str:
         const_id = f"{state_name}:{constituency.get('number')}:{constituency.get('name')}"
+        raw_members = _to_member_list(_pick_first(constituency, list(self.member_keys), []))
+        members: List[dict] = []
+        for index, member in enumerate(raw_members, start=1):
+            if not isinstance(member, dict):
+                continue
+            member_id = self._member_identifier(state_name, constituency, member, index)
+            member_meta = {
+                "id": member_id,
+                "raw": member,
+                "state": state_name,
+                "constituency": constituency.get("name") or "Unbekannter Wahlkreis",
+            }
+            self.member_map[member_id] = member_meta
+            members.append(member_meta)
+
         self.constituency_map[const_id] = {
             "id": const_id,
             "state": state_name,
             "name": constituency.get("name") or "Unbekannter Wahlkreis",
             "number": constituency.get("number"),
-            "members": _to_member_list(_pick_first(constituency, list(self.member_keys), [])),
+            "members": members,
         }
         return const_id
 
@@ -432,9 +560,74 @@ class BundestagData:
             found.add(normalized)
         return found
 
-    def _build_member_result(self, member: dict, state_name: str, constituency_name: str) -> dict:
+    def _member_identifier(self, state_name: str, constituency: dict, member: dict, index: int) -> str:
+        member_name = member.get("name") or f"{member.get('firstName', '')} {member.get('lastName', '')}".strip()
+        number = constituency.get("number") or "xx"
+        return f"member:{_slugify_filename(state_name)}:{number}:{_slugify_filename(member_name)}:{index}"
+
+    def _build_letter_filename(self, index: int, recipient: dict) -> str:
+        recipient_slug = _slugify_filename(recipient.get("name") or f"schreiben_{index}")
+        constituency_slug = _slugify_filename(recipient.get("constituency") or "wahlkreis")
+        return f"{index:02d}_{recipient_slug}_{constituency_slug}.rtf"
+
+    def _render_letter_rtf(
+        self,
+        recipient: dict,
+        sender_name: str,
+        sender_extra: str,
+        sender_address: str,
+        sender_email: str,
+    ) -> str:
+        sender_lines = [sender_name]
+        sender_lines.extend(_split_address_lines(sender_address))
+        sender_lines.append(sender_email)
+
+        recipient_lines = [recipient.get("name") or "Bundestagsabgeordnete Person"]
+        if recipient.get("officeAddress") and recipient["officeAddress"] != "Nicht verfügbar":
+            recipient_lines.extend(_split_address_lines(recipient["officeAddress"]))
+        else:
+            recipient_lines.append(recipient.get("constituency") or "Bundestag")
+            if recipient.get("state"):
+                recipient_lines.append(recipient["state"])
+
+        salutation = f"Sehr geehrte/r {recipient.get('name') or 'Abgeordnete/r'},"
+        today = date.today().strftime("%d.%m.%Y")
+        body = LETTER_BODY.replace("\n", "\n")
+
+        lines = [
+            r"{\rtf1\ansi\deff0",
+            r"{\fonttbl{\f0 Arial;}}",
+            r"\fs24",
+            _rtf_escape("\n".join(sender_lines)),
+            r"\par\par",
+            _rtf_escape("\n".join(recipient_lines)),
+            r"\par\par",
+            _rtf_escape(today),
+            r"\par\par",
+            r"\b " + _rtf_escape("Ihr politisches Handeln im Deutschen Bundestag") + r"\b0",
+            r"\par\par",
+            _rtf_escape(salutation),
+            r"\par\par",
+            _rtf_escape(body),
+            r"\par\par",
+            _rtf_escape("Mit freundlichen Grüßen"),
+            r"\par\par",
+            _rtf_escape(sender_name),
+            r"\par" + _rtf_escape(sender_extra) if sender_extra else "",
+            r"}",
+        ]
+        return "".join(lines)
+
+    def _build_member_result(
+        self,
+        member: dict,
+        state_name: str,
+        constituency_name: str,
+        member_id: Optional[str] = None,
+    ) -> dict:
         first, last = self._extract_member_name_parts(member)
         name = member.get("name") or f"{first} {last}".strip()
+        display_name = _format_member_display_name(member.get("name") or "", first, last) or name
 
         profile_url = _pick_first(
             member, ["link", "profile", "profileUrl", "url", "bio", "detail"]
@@ -446,7 +639,9 @@ class BundestagData:
         ) or "Unbekannt"
 
         result = {
+            "id": member_id,
             "name": name or "Unbekannte Person",
+            "displayName": display_name or "Unbekannte Person",
             "faction": faction,
             "constituency": constituency_name,
             "state": state_name,
@@ -482,6 +677,7 @@ class BundestagData:
 
         last = _strip_leading_titles(last)
         first = _strip_leading_titles(first)
+        first, last = _merge_name_particles(first, last)
         return first.strip(), last.strip()
 
     def _guess_bundestag_email(self, first_name: str, last_name: str) -> Optional[str]:
@@ -686,6 +882,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
+    def do_POST(self):  # noqa: N802
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/letters":
+            self._handle_api_letters()
+            return
+        self._not_found()
+
     def _handle_api_search(self, parsed):
         query = urllib.parse.parse_qs(parsed.query)
         target_id = (query.get("target", [""])[0] or "").strip()
@@ -729,6 +932,44 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         }
         payload = json.dumps(response, ensure_ascii=False).encode("utf-8")
         self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _handle_api_letters(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            content_length = 0
+
+        raw = self.rfile.read(content_length) if content_length else b""
+        try:
+            payload = json.loads(raw.decode("utf-8") or "{}")
+        except Exception:
+            self._json_error("Ungültige Anfragedaten.", status=400)
+            return
+
+        member_ids = payload.get("memberIds") or []
+        sender = payload.get("sender") or {}
+
+        try:
+            archive = self.server.store.build_letter_archive(member_ids, sender)
+        except ValueError as exc:
+            self._json_error(str(exc), status=400)
+            return
+
+        filename = f"bundestag-schreiben-{date.today().isoformat()}.zip"
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Length", str(len(archive)))
+        self.end_headers()
+        self.wfile.write(archive)
+
+    def _json_error(self, message: str, status: int = 400):
+        payload = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
