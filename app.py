@@ -164,6 +164,17 @@ def _split_address_lines(value: str) -> List[str]:
     return parts[:-2] + [f"{parts[-2]} {parts[-1]}"]
 
 
+def _extract_city_from_address(value: str) -> str:
+    lines = _split_address_lines(value)
+    if not lines:
+        return ""
+    last_line = lines[-1]
+    match = re.search(r"\b\d{5}\s+(.+)$", last_line)
+    if match:
+        return match.group(1).strip()
+    return last_line.strip()
+
+
 def _rtf_escape(value: str) -> str:
     escaped: List[str] = []
     for char in value or "":
@@ -636,29 +647,30 @@ class BundestagData:
 
         salutation_name = recipient.get("fullName") or recipient.get("name") or "Abgeordnete Person"
         salutation = f"Guten Tag, {salutation_name},"
+        sender_city = _extract_city_from_address(sender_address)
         today = date.today().strftime("%d.%m.%Y")
-        body = LETTER_BODY.replace("\n", "\n")
+        date_line = f"{sender_city}, den {today}" if sender_city else today
 
         lines = [
             r"{\rtf1\ansi\deff0",
             r"{\fonttbl{\f0 Arial;}}",
-            r"\fs24",
+            r"\fs24 ",
             _rtf_escape("\n".join(sender_lines)),
-            r"\par\par",
+            r"\par\par\par ",
             _rtf_escape("\n".join(recipient_lines)),
-            r"\par\par",
-            _rtf_escape(today),
-            r"\par\par",
-            r"\b " + _rtf_escape("Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG") + r"\b0",
-            r"\par\par",
+            r"\par\par\par ",
+            _rtf_escape(date_line),
+            r"\par\par ",
+            r"\b " + _rtf_escape("Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG") + r"\b0 ",
+            r"\par\par\par ",
             _rtf_escape(salutation),
-            r"\par\par",
-            _rtf_escape(body),
-            r"\par\par",
+            r"\par\par ",
+            _rtf_escape(LETTER_BODY),
+            r"\par\par ",
             _rtf_escape("Mit freundlichen Grüßen"),
-            r"\par\par",
+            r"\par\par ",
             _rtf_escape(sender_name),
-            r"\par" + _rtf_escape(sender_extra) if sender_extra else "",
+            (r"\par " + _rtf_escape(sender_extra)) if sender_extra else "",
             r"}",
         ]
         return "".join(lines)
