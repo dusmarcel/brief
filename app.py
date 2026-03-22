@@ -136,7 +136,7 @@ EMAIL_OVERRIDES = {
     ("awet", "tesfaiesus"): "awet.tesfaiesus@bundestag.de",
     ("carsten", "schneider"): "carsten.schneider@bundestag.de",
     ("carsten", "schneider-erfurt"): "carsten.schneider@bundestag.de",
-    ("michael", "kaufmann"): "kontakt@kaufmann-michael.de",
+    ("michael", "kaufmann"): "michael.kaufmann@bundestag.de",
 }
 
 
