@@ -78,8 +78,26 @@ def _slugify_email_part(value: str) -> str:
 
 
 def _strip_leading_titles(value: str) -> str:
-    title_pattern = r"^(?:(?:dr|prof|professor|frhr|freiherr)\.?\s+)+"
-    return re.sub(title_pattern, "", (value or "").strip(), flags=re.I).strip()
+    text = _normalize_name_spacing(value)
+    if not text:
+        return ""
+
+    title_pattern = re.compile(
+        r"^(?:(?:"
+        r"prof(?:essor)?|"
+        r"dr(?:\s*[-./]?\s*(?:ing|jur|med|med dent|med vet|phil|rer nat|rer pol|theol))?|"
+        r"habil|"
+        r"frhr|freiherr|"
+        r"dipl(?:\s*[-./]?\s*(?:ing|jur|kfm|volksw|pol|soz))?|"
+        r"m\.?a|"
+        r"b\.?a|"
+        r"m\.?sc|"
+        r"b\.?sc|"
+        r"ll\.?m"
+        r")\.?\s+)+",
+        flags=re.I,
+    )
+    return re.sub(title_pattern, "", text).strip(" ,")
 
 
 def _normalize_name_spacing(value: str) -> str:
@@ -115,8 +133,10 @@ def _slugify_filename(value: str) -> str:
 
 
 EMAIL_OVERRIDES = {
+    ("awet", "tesfaiesus"): "awet.tesfaiesus@bundestag.de",
     ("carsten", "schneider"): "carsten.schneider@bundestag.de",
     ("carsten", "schneider-erfurt"): "carsten.schneider@bundestag.de",
+    ("michael", "kaufmann"): "kontakt@kaufmann-michael.de",
 }
 
 
