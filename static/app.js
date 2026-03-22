@@ -58,7 +58,7 @@ function renderEmail(member) {
     return "Nicht öffentlich veröffentlicht";
   }
 
-  const label = "E-Mail:";
+  const label = "<strong>E-Mail:</strong>";
   const safeEmail = escapeHtml(member.email);
   return `${label} <a href="mailto:${safeEmail}">${safeEmail}</a>`;
 }
@@ -72,6 +72,10 @@ function kindLabel(kind) {
       state: "Bundesland",
     }[kind] || "Treffer"
   );
+}
+
+function isAfDMember(member) {
+  return String(member?.faction || "").trim().toLowerCase() === "afd";
 }
 
 function escapeHtml(value) {
@@ -199,6 +203,7 @@ function renderMemberCard(member) {
 function renderResults(rows, target) {
   state.results = rows;
   state.currentTarget = target;
+  state.selectedMembers = new Map(rows.filter((member) => !isAfDMember(member)).map((member) => [member.id, member]));
   result.innerHTML = "";
 
   if (!rows.length) {
@@ -209,7 +214,7 @@ function renderResults(rows, target) {
 
   status.textContent = `Gefunden: ${rows.length} Abgeordnete für ${target.label} (${kindLabel(
     target.kind
-  )}). Wähle unten die gewünschten Empfänger*innen aus.`;
+  )}). Wähle unten die gewünschten Empfänger*innen aus. Wir gehen davon aus, dass du die Abgeordneten der demokratischen Fraktionen anschreiben möchtest, die deswegen bereits vorausgewählt werden.`;
 
   const grid = document.createElement("div");
   grid.className = "result-grid";
