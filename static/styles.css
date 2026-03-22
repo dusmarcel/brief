@@ -355,6 +355,54 @@ body {
   margin-top: 1rem;
 }
 
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.email-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.email-action {
+  background: #fff;
+  border: 1px solid #dbe5f5;
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+}
+
+.email-action strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.email-action p {
+  margin: 0.2rem 0 0.75rem;
+  color: var(--muted);
+}
+
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.action-link:hover,
+.action-link:focus-visible {
+  background: var(--brand-strong);
+}
+
 .letter-preview {
   background: #fff;
   border: 1px solid #e2e9f4;

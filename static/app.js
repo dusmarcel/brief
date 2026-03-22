@@ -25,8 +25,10 @@ const toStep2Button = document.getElementById("to-step-2");
 
 const step1Panel = document.getElementById("step-1");
 const step2Panel = document.getElementById("step-2");
+const step3Panel = document.getElementById("step-3");
 const stepChip1 = document.getElementById("step-chip-1");
 const stepChip2 = document.getElementById("step-chip-2");
+const stepChip3 = document.getElementById("step-chip-3");
 
 const selectedMembersBox = document.getElementById("selected-members");
 const letterForm = document.getElementById("letter-form");
@@ -36,7 +38,11 @@ const senderAddressInput = document.getElementById("sender-address");
 const senderEmailInput = document.getElementById("sender-email");
 const letterPreview = document.getElementById("letter-preview");
 const backToStep1Button = document.getElementById("back-to-step-1");
+const backToStep2Button = document.getElementById("back-to-step-2");
+const step2Status = document.getElementById("step-2-status");
+const emailActions = document.getElementById("email-actions");
 const downloadStatus = document.getElementById("download-status");
+const downloadLettersButton = document.getElementById("download-letters");
 
 function formatAddress(address) {
   return address || "Nicht verfügbar";
@@ -50,7 +56,20 @@ function splitAddressLines(address) {
   if (text.includes("\n")) {
     return text.split("\n").map((line) => line.trim()).filter(Boolean);
   }
-  return text.split(",").map((part) => part.trim()).filter(Boolean);
+  const parts = text.split(",").map((part) => part.trim()).filter(Boolean);
+  if (parts.length <= 1) {
+    return parts;
+  }
+  if (parts.length === 2) {
+    return parts;
+  }
+  if (/\b\d{5}\b/.test(parts[parts.length - 1])) {
+    if (parts.length === 3) {
+      return [`${parts[0]} ${parts[1]}`, parts[2]];
+    }
+    return [parts[0], parts.slice(1, -1).join(" "), parts[parts.length - 1]];
+  }
+  return [...parts.slice(0, -2), `${parts[parts.length - 2]} ${parts[parts.length - 1]}`];
 }
 
 function renderEmail(member) {
@@ -84,6 +103,95 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function getSenderPayload() {
+  return {
+    name: senderNameInput.value.trim(),
+    nameExtra: senderNameExtraInput.value.trim(),
+    address: senderAddressInput.value.trim(),
+    email: senderEmailInput.value.trim(),
+  };
+}
+
+function getLetterSubject() {
+  return "Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG";
+}
+
+function getLetterBody(member, sender) {
+  const salutationName = member?.fullName || member?.displayName || member?.name || "Bundestagsabgeordnete Person";
+  const closingLines = [sender.name || "Vorname Nachname"];
+  if (sender.nameExtra) {
+    closingLines.push(sender.nameExtra);
+  }
+  if (sender.email) {
+    closingLines.push(sender.email);
+  }
+
+  return [
+    `Guten Tag, ${salutationName},`,
+    "",
+    ...LETTER_BODY.split("\n"),
+    "",
+    "Mit freundlichen Grüßen",
+    ...closingLines,
+  ].join("\n");
+}
+
+function buildMailtoHref(member, sender) {
+  if (!member?.email) {
+    return "";
+  }
+  const params = new URLSearchParams({
+    subject: getLetterSubject(),
+    body: getLetterBody(member, sender),
+  });
+  if (sender.email) {
+    params.set("reply-to", sender.email);
+    params.set("from", sender.email);
+  }
+  return `mailto:${encodeURIComponent(member.email)}?${params.toString()}`;
+}
+
+function renderEmailActions() {
+  const sender = getSenderPayload();
+  const selected = [...state.selectedMembers.values()];
+
+  if (!selected.length) {
+    emailActions.innerHTML = "<p class=\"muted\">Noch keine Empfänger*innen ausgewählt.</p>";
+    return;
+  }
+
+  emailActions.innerHTML = selected
+    .map((member) => {
+      const label = member.fullName || member.displayName || member.name || "Unbekannte Person";
+      const email = member.email;
+      if (email) {
+        return `
+          <div class="email-action">
+            <strong>${escapeHtml(label)}</strong>
+            <p>${escapeHtml(email)}</p>
+            <a class="action-link" href="${escapeHtml(buildMailtoHref(member, sender))}">E-Mail vorbereiten</a>
+          </div>
+        `;
+      }
+      if (member.contactFormUrl) {
+        return `
+          <div class="email-action">
+            <strong>${escapeHtml(label)}</strong>
+            <p>Keine E-Mail-Adresse verfügbar. Es gibt aber ein Kontaktformular.</p>
+            <a class="action-link" href="${escapeHtml(member.contactFormUrl)}" target="_blank" rel="noopener noreferrer">Kontaktformular öffnen</a>
+          </div>
+        `;
+      }
+      return `
+        <div class="email-action">
+          <strong>${escapeHtml(label)}</strong>
+          <p>Für diese Person ist aktuell weder eine E-Mail-Adresse noch ein Kontaktformular hinterlegt.</p>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 function clearSuggestions() {
@@ -246,16 +354,18 @@ function renderLetterPreview() {
   const senderName = senderNameInput.value.trim() || "Vorname Nachname";
   const senderExtra = senderNameExtraInput.value.trim();
   const senderAddress = senderAddressInput.value.trim() || "Straße Hausnummer\nPLZ Ort";
-  const senderEmail = senderEmailInput.value.trim() || "name@example.org";
+  const senderEmail = senderEmailInput.value.trim();
   const firstRecipient = [...state.selectedMembers.values()][0];
 
   const senderLines = [senderName];
   senderLines.push(...senderAddress.split(/\r?\n/).filter(Boolean));
-  senderLines.push(senderEmail);
+  if (senderEmail) {
+    senderLines.push(senderEmail);
+  }
 
   const recipientLines = firstRecipient
     ? [
-        firstRecipient.displayName || firstRecipient.name,
+        firstRecipient.fullName || firstRecipient.name,
         ...(firstRecipient.officeAddress && firstRecipient.officeAddress !== "Nicht verfügbar"
           ? splitAddressLines(firstRecipient.officeAddress)
           : splitAddressLines(`${firstRecipient.constituency}, ${firstRecipient.state || ""}`.replace(/,\s*$/, ""))),
@@ -282,11 +392,12 @@ function renderLetterPreview() {
 }
 
 function syncStepUi() {
-  const inStep2 = state.step === 2;
-  step1Panel.hidden = inStep2;
-  step2Panel.hidden = !inStep2;
-  stepChip1.classList.toggle("is-active", !inStep2);
-  stepChip2.classList.toggle("is-active", inStep2);
+  step1Panel.hidden = state.step !== 1;
+  step2Panel.hidden = state.step !== 2;
+  step3Panel.hidden = state.step !== 3;
+  stepChip1.classList.toggle("is-active", state.step === 1);
+  stepChip2.classList.toggle("is-active", state.step === 2);
+  stepChip3.classList.toggle("is-active", state.step === 3);
 }
 
 function goToStep(stepNumber) {
@@ -294,7 +405,14 @@ function goToStep(stepNumber) {
   if (stepNumber === 2) {
     renderSelectedMembers();
     renderLetterPreview();
+    step2Status.textContent = "";
     downloadStatus.textContent = "";
+  }
+  if (stepNumber === 3) {
+    renderSelectedMembers();
+    renderLetterPreview();
+    renderEmailActions();
+    step2Status.textContent = "";
   }
   syncStepUi();
 }
@@ -426,13 +544,30 @@ backToStep1Button.addEventListener("click", () => {
   goToStep(1);
 });
 
+backToStep2Button.addEventListener("click", () => {
+  goToStep(2);
+});
+
 [senderNameInput, senderNameExtraInput, senderAddressInput, senderEmailInput].forEach((field) => {
-  field.addEventListener("input", renderLetterPreview);
+  field.addEventListener("input", () => {
+    renderLetterPreview();
+    if (state.step === 3) {
+      renderEmailActions();
+    }
+  });
 });
 
 letterForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!letterForm.reportValidity()) {
+    return;
+  }
+  goToStep(3);
+});
+
+async function downloadLetters() {
+  if (!letterForm.reportValidity()) {
+    goToStep(2);
     return;
   }
 
@@ -446,12 +581,7 @@ letterForm.addEventListener("submit", async (event) => {
       },
       body: JSON.stringify({
         memberIds: [...state.selectedMembers.keys()],
-        sender: {
-          name: senderNameInput.value.trim(),
-          nameExtra: senderNameExtraInput.value.trim(),
-          address: senderAddressInput.value.trim(),
-          email: senderEmailInput.value.trim(),
-        },
+        sender: getSenderPayload(),
       }),
     });
 
@@ -485,7 +615,9 @@ letterForm.addEventListener("submit", async (event) => {
     downloadStatus.textContent = "Download fehlgeschlagen. Bitte später erneut versuchen.";
     console.error(error);
   }
-});
+}
+
+downloadLettersButton.addEventListener("click", downloadLetters);
 
 syncStepUi();
 updateSelectionInfo();

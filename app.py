@@ -140,11 +140,28 @@ EMAIL_OVERRIDES = {
 }
 
 
+def _get_email_override(first_name: str, last_name: str) -> Optional[str]:
+    first = _slugify_email_part(_strip_leading_titles(first_name))
+    last = _slugify_email_part(_strip_leading_titles(last_name))
+    if not first or not last:
+        return None
+    return EMAIL_OVERRIDES.get((first, last))
+
+
 def _split_address_lines(value: str) -> List[str]:
     text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
     if "\n" in text:
         return [line.strip() for line in text.split("\n") if line.strip()]
-    return [part.strip() for part in text.split(",") if part.strip()]
+    parts = [part.strip() for part in text.split(",") if part.strip()]
+    if len(parts) <= 1:
+        return parts
+    if len(parts) == 2:
+        return parts
+    if re.search(r"\b\d{5}\b", parts[-1]):
+        if len(parts) == 3:
+            return [f"{parts[0]} {parts[1]}", parts[2]]
+        return [parts[0], " ".join(parts[1:-1]), parts[-1]]
+    return parts[:-2] + [f"{parts[-2]} {parts[-1]}"]
 
 
 def _rtf_escape(value: str) -> str:
@@ -382,8 +399,8 @@ class BundestagData:
         sender_address = (sender.get("address") or "").strip()
         sender_email = (sender.get("email") or "").strip()
 
-        if not sender_name or not sender_address or not sender_email:
-            raise ValueError("Bitte Name, Anschrift und E-Mail-Adresse angeben.")
+        if not sender_name or not sender_address:
+            raise ValueError("Bitte Name und Anschrift angeben.")
 
         archive = io.BytesIO()
         with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
@@ -606,11 +623,10 @@ class BundestagData:
     ) -> str:
         sender_lines = [sender_name]
         sender_lines.extend(_split_address_lines(sender_address))
-        sender_lines.append(sender_email)
+        if sender_email:
+            sender_lines.append(sender_email)
 
-        recipient_lines = [
-            recipient.get("displayName") or recipient.get("name") or "Bundestagsabgeordnete Person"
-        ]
+        recipient_lines = [recipient.get("fullName") or recipient.get("name") or "Bundestagsabgeordnete Person"]
         if recipient.get("officeAddress") and recipient["officeAddress"] != "Nicht verfügbar":
             recipient_lines.extend(_split_address_lines(recipient["officeAddress"]))
         else:
@@ -679,7 +695,11 @@ class BundestagData:
             "profileUrl": profile_url,
         }
         result.update(self._get_profile_info(profile_url))
-        if not result.get("email"):
+        override_email = _get_email_override(first, last)
+        if override_email:
+            result["email"] = override_email
+            result["emailGuessed"] = False
+        elif not result.get("email"):
             guessed_email = self._guess_bundestag_email(first, last)
             if guessed_email:
                 result["email"] = guessed_email

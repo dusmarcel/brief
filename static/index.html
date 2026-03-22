@@ -25,7 +25,8 @@
 
       <nav class="stepper" aria-label="Prozessschritte">
         <div class="step-chip is-active" id="step-chip-1">1. Abgeordnete auswählen</div>
-        <div class="step-chip" id="step-chip-2">2. Angaben und Download</div>
+        <div class="step-chip" id="step-chip-2">2. Angaben</div>
+        <div class="step-chip" id="step-chip-3">3. Versand und Download</div>
       </nav>
 
       <section id="step-1" class="step-panel">
@@ -68,8 +69,8 @@
               <textarea id="sender-address" name="address" rows="4" required placeholder="Straße Hausnummer&#10;PLZ Ort"></textarea>
             </label>
             <label class="full-width">
-              <span>E-Mail-Adresse *</span>
-              <input id="sender-email" name="email" type="email" required />
+              <span>E-Mail-Adresse</span>
+              <input id="sender-email" name="email" type="email" />
             </label>
           </div>
 
@@ -80,9 +81,42 @@
 
           <div class="step-actions">
             <button id="back-to-step-1" class="ghost-button" type="button">Zurück</button>
-            <button id="download-letters" type="submit">Weiter</button>
+            <button id="to-step-3" type="submit">Weiter</button>
           </div>
         </form>
+
+        <section id="step-2-status" class="status" aria-live="polite"></section>
+      </section>
+
+      <section id="step-3" class="step-panel" hidden>
+        <div class="selection-summary">
+          <h2>Gewählte Aktionen</h2>
+          <p class="muted">
+            Du kannst die Schreiben als ZIP herunterladen oder für jede ausgewählte Person eine einzelne E-Mail
+            vorbereiten.
+          </p>
+        </div>
+
+        <div class="action-grid">
+          <section class="letter-preview-block">
+            <h2>Download</h2>
+            <p class="muted">Erzeuge die Schreiben wie bisher als ZIP-Archiv.</p>
+            <button id="download-letters" type="button">Schreiben herunterladen</button>
+          </section>
+
+          <section class="letter-preview-block">
+            <h2>E-Mails vorbereiten</h2>
+            <p class="muted">
+              Für jede ausgewählte Person wird eine eigene E-Mail vorbereitet. Je nach Mailprogramm werden
+              Absenderangaben aus dem Formular als `From` und/oder `Reply-To` übernommen.
+            </p>
+            <div id="email-actions" class="email-actions"></div>
+          </section>
+        </div>
+
+        <div class="step-actions">
+          <button id="back-to-step-2" class="ghost-button" type="button">Zurück</button>
+        </div>
 
         <section id="download-status" class="status" aria-live="polite"></section>
       </section>
