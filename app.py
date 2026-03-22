@@ -114,6 +114,12 @@ def _slugify_filename(value: str) -> str:
     return slug or "dokument"
 
 
+EMAIL_OVERRIDES = {
+    ("carsten", "schneider"): "carsten.schneider@bundestag.de",
+    ("carsten", "schneider-erfurt"): "carsten.schneider@bundestag.de",
+}
+
+
 def _split_address_lines(value: str) -> List[str]:
     text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
     if "\n" in text:
@@ -690,6 +696,9 @@ class BundestagData:
         last = _slugify_email_part(_strip_leading_titles(last_name))
         if not first or not last:
             return None
+        override = EMAIL_OVERRIDES.get((first, last))
+        if override:
+            return override
         return f"{first}.{last}@bundestag.de"
 
     def _scan(

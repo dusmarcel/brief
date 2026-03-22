@@ -58,7 +58,7 @@ function renderEmail(member) {
     return "Nicht öffentlich veröffentlicht";
   }
 
-  const label = member.emailGuessed ? "E-Mail (vermutlich):" : "E-Mail:";
+  const label = "E-Mail:";
   const safeEmail = escapeHtml(member.email);
   return `${label} <a href="mailto:${safeEmail}">${safeEmail}</a>`;
 }
@@ -210,12 +210,6 @@ function renderResults(rows, target) {
   status.textContent = `Gefunden: ${rows.length} Abgeordnete für ${target.label} (${kindLabel(
     target.kind
   )}). Wähle unten die gewünschten Empfänger*innen aus.`;
-
-  const notice = document.createElement("div");
-  notice.className = "notice";
-  notice.textContent =
-    "Hinweis: Viele E-Mail-Adressen der Bundestagsabgeordneten sind nicht öffentlich. In diesen Fällen wird versucht, die E-Mail-Adresse anhand eines gebräuchlichen Schemas zu erraten. Zudem wird ggf. ein Kontaktformular verlinkt.";
-  result.appendChild(notice);
 
   const grid = document.createElement("div");
   grid.className = "result-grid";
