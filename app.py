@@ -582,7 +582,9 @@ class BundestagData:
         sender_lines.extend(_split_address_lines(sender_address))
         sender_lines.append(sender_email)
 
-        recipient_lines = [recipient.get("name") or "Bundestagsabgeordnete Person"]
+        recipient_lines = [
+            recipient.get("displayName") or recipient.get("name") or "Bundestagsabgeordnete Person"
+        ]
         if recipient.get("officeAddress") and recipient["officeAddress"] != "Nicht verfügbar":
             recipient_lines.extend(_split_address_lines(recipient["officeAddress"]))
         else:
