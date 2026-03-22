@@ -1,6 +1,6 @@
-# Bundestag nach PLZ
+# Briefaktion der Rechtsberater*innenkonferenz
 
-Diese Webapp sucht nach einer Postleitzahl und zeigt die Bundestagsabgeordneten an, deren Wahlkreis diese PLZ enthält.
+Diese Webapp unterstützt eine Brief- und E-Mail-Aktion an Bundestagsabgeordnete zum Erhalt der unabhängigen Asylverfahrensberatung. Sie sucht Abgeordnete nach Ort, Landkreis, Bundesland oder Postleitzahl, erlaubt die Auswahl passender Empfänger*innen und erzeugt anschließend Schreiben als ZIP-Datei oder einzelne E-Mail-Entwürfe.
 
 ## Schnellstart
 
@@ -23,20 +23,24 @@ Im Dev-Container läuft `watchmedo` mit Polling, damit Änderungen an `*.py`, `*
 
 ## Funktion
 
-- Eingabe: PLZ (z. B. `10435`)
-- Ergebnis:
-  - Name
-  - Fraktionszugehörigkeit
-  - Postanschrift
-  - E-Mail (sofern öffentlich vorhanden)
-  - Link zum offiziellen Profil
-  - Kontaktformular
+Die Anwendung führt durch drei Schritte:
 
-## Hinweis zur E-Mail
+1. Abgeordnete suchen und auswählen
+   - Suche nach Ort, Landkreis, Bundesland oder PLZ
+   - Anzeige von Name, Fraktion, Postanschrift, E-Mail, Profil und Kontaktformular
+   - Alle nicht zur AfD gehörenden Abgeordneten werden standardmäßig vorausgewählt
+2. Absenderangaben ergänzen
+   - Name und Anschrift sind Pflichtfelder
+   - E-Mail-Adresse ist optional
+   - Vorschau des Schreibens mit Anschrift, Betreff und Anrede
+3. Versandart wählen
+   - ZIP-Archiv mit personalisierten Schreiben herunterladen
+   - Für jede ausgewählte Person einen eigenen E-Mail-Entwurf erzeugen
+   - Optional alle verfügbaren E-Mail-Entwürfe gesammelt nacheinander vorbereiten
 
-Die Datenquelle liefert teilweise keine öffentlichen E-Mail-Adressen. Wenn keine E-Mail verfügbar ist, wird angezeigt:
+## E-Mail-Adressen
 
-- `Nicht öffentlich veröffentlicht`
+Die Datenquelle liefert nicht immer öffentliche E-Mail-Adressen. Wenn keine Adresse auf Profil- oder Kontaktseiten gefunden wird, versucht die Anwendung, eine plausible Adresse zu ergänzen. Für bekannte Ausnahmen können feste Korrekturen im Backend hinterlegt werden.
 
 ## Datenquelle
 
