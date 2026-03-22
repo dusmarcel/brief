@@ -590,7 +590,8 @@ class BundestagData:
             if recipient.get("state"):
                 recipient_lines.append(recipient["state"])
 
-        salutation = f"Sehr geehrte/r {recipient.get('name') or 'Abgeordnete/r'},"
+        salutation_name = recipient.get("fullName") or recipient.get("name") or "Abgeordnete Person"
+        salutation = f"Guten Tag, {salutation_name},"
         today = date.today().strftime("%d.%m.%Y")
         body = LETTER_BODY.replace("\n", "\n")
 
@@ -604,7 +605,7 @@ class BundestagData:
             r"\par\par",
             _rtf_escape(today),
             r"\par\par",
-            r"\b " + _rtf_escape("Ihr politisches Handeln im Deutschen Bundestag") + r"\b0",
+            r"\b " + _rtf_escape("Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG") + r"\b0",
             r"\par\par",
             _rtf_escape(salutation),
             r"\par\par",
@@ -628,6 +629,7 @@ class BundestagData:
         first, last = self._extract_member_name_parts(member)
         name = member.get("name") or f"{first} {last}".strip()
         display_name = _format_member_display_name(member.get("name") or "", first, last) or name
+        full_name = _normalize_name_spacing(f"{first} {last}") or name
 
         profile_url = _pick_first(
             member, ["link", "profile", "profileUrl", "url", "bio", "detail"]
@@ -642,6 +644,7 @@ class BundestagData:
             "id": member_id,
             "name": name or "Unbekannte Person",
             "displayName": display_name or "Unbekannte Person",
+            "fullName": full_name or "Unbekannte Person",
             "faction": faction,
             "constituency": constituency_name,
             "state": state_name,

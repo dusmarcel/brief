@@ -42,6 +42,17 @@ function formatAddress(address) {
   return address || "Nicht verfügbar";
 }
 
+function splitAddressLines(address) {
+  const text = String(address || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  if (!text) {
+    return [];
+  }
+  if (text.includes("\n")) {
+    return text.split("\n").map((line) => line.trim()).filter(Boolean);
+  }
+  return text.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
 function renderEmail(member) {
   if (!member.email) {
     return "Nicht öffentlich veröffentlicht";
@@ -245,19 +256,22 @@ function renderLetterPreview() {
 
   const recipientLines = firstRecipient
     ? [
-        firstRecipient.name,
-        firstRecipient.officeAddress && firstRecipient.officeAddress !== "Nicht verfügbar"
-          ? firstRecipient.officeAddress
-          : `${firstRecipient.constituency}, ${firstRecipient.state || ""}`.replace(/,\s*$/, ""),
+        firstRecipient.displayName || firstRecipient.name,
+        ...(firstRecipient.officeAddress && firstRecipient.officeAddress !== "Nicht verfügbar"
+          ? splitAddressLines(firstRecipient.officeAddress)
+          : splitAddressLines(`${firstRecipient.constituency}, ${firstRecipient.state || ""}`.replace(/,\s*$/, ""))),
       ]
     : ["Ausgewählte/r Bundestagsabgeordnete/r"];
+
+  const salutationName =
+    firstRecipient?.fullName || firstRecipient?.displayName || firstRecipient?.name || "Bundestagsabgeordnete Person";
 
   letterPreview.innerHTML = `
     <div class="preview-meta">${escapeHtml(senderLines.join("\n"))}</div>
     <div class="preview-meta">${escapeHtml(recipientLines.join("\n"))}</div>
-    <div class="preview-meta">Ihr politisches Handeln im Deutschen Bundestag</div>
+    <div class="preview-meta">Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG</div>
     <p>${escapeHtml(
-      firstRecipient ? `Sehr geehrte/r ${firstRecipient.name},` : "Sehr geehrte/r Bundestagsabgeordnete/r,"
+      firstRecipient ? `Guten Tag, ${salutationName},` : "Guten Tag,"
     )}</p>
     ${LETTER_BODY.split("\n\n")
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
