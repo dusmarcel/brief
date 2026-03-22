@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      PORT: "8000"
+      HOST: "0.0.0.0"
+    init: true
+    restart: unless-stopped

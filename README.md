@@ -13,13 +13,43 @@ Danach im Browser öffnen:
 
 - `http://127.0.0.1:8000`
 
-## Entwicklung mit Docker
+## Docker
+
+### Entwicklung
 
 ```bash
 docker compose up --build
 ```
 
 Im Dev-Container läuft `watchmedo` mit Polling, damit Änderungen an `*.py`, `*.html`, `*.js`, `*.css` und `*.json` auf gemounteten Host-Dateien auch unter Docker Desktop zuverlässig erkannt werden. Danach sollte ein Neuladen im Browser genügen.
+
+### Produktion
+
+Für den produktiven Betrieb gibt es eine separate Compose-Datei ohne Bind-Mounts und ohne Hot-Reload:
+
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+Die Produktionskonfiguration:
+
+- baut den `prod`-Target aus dem `Dockerfile`
+- startet die App ohne `watchmedo`
+- läuft als nicht-root Benutzer `appuser`
+- setzt `restart: unless-stopped`
+- veröffentlicht standardmäßig Port `8000`
+
+Einen anderen Host-Port kannst du beim Start über `PORT` setzen:
+
+```bash
+PORT=8080 docker compose -f docker-compose.prod.yml up --build -d
+```
+
+Zum Stoppen:
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
 
 ## Funktion
 
