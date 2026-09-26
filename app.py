@@ -731,6 +731,8 @@ class BundestagData:
             "name": name or "Unbekannte Person",
             "displayName": display_name or "Unbekannte Person",
             "fullName": full_name or "Unbekannte Person",
+            "firstName": first,
+            "lastName": last,
             "faction": faction,
             "constituency": constituency_name,
             "state": state_name,

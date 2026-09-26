@@ -42,6 +42,15 @@
 
         <section id="status" class="status" aria-live="polite"></section>
         <section id="selection-info" class="selection-info" hidden></section>
+        <div id="result-sort-controls" class="result-sort-controls" hidden>
+          <label for="result-sort">Suchergebnisse sortieren</label>
+          <select id="result-sort">
+            <option value="default">Ursprüngliche Reihenfolge</option>
+            <option value="first-name">Vorname</option>
+            <option value="last-name">Nachname</option>
+            <option value="party">Partei</option>
+          </select>
+        </div>
         <section id="result" class="result-list"></section>
         <div class="step-actions">
           <button id="to-step-2" class="secondary-button" type="button" disabled>Weiter</button>

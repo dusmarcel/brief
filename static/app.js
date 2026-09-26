@@ -24,6 +24,8 @@ const targetInput = document.getElementById("search-target");
 const suggestionsBox = document.getElementById("suggestions");
 const status = document.getElementById("status");
 const selectionInfo = document.getElementById("selection-info");
+const resultSortControls = document.getElementById("result-sort-controls");
+const resultSortSelect = document.getElementById("result-sort");
 const result = document.getElementById("result");
 const toStep2Button = document.getElementById("to-step-2");
 
@@ -101,6 +103,50 @@ function kindLabel(kind) {
 
 function isAfDMember(member) {
   return String(member?.faction || "").trim().toLowerCase() === "afd";
+}
+
+function normalizePartyName(party) {
+  return String(party || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function sortResults(rows) {
+  const collator = new Intl.Collator("de", { sensitivity: "base" });
+  const sortOrder = resultSortSelect.value;
+  const partyRanks = new Map([
+    ["cdu csu", 0],
+    ["spd", 1],
+    ["bundnis 90 die grunen", 2],
+    ["die linke", 3],
+    ["fraktionslos", 4],
+    ["afd", 6],
+  ]);
+  const compareNames = (left, right) =>
+    collator.compare(left.lastName || left.fullName || left.name, right.lastName || right.fullName || right.name) ||
+    collator.compare(left.firstName || "", right.firstName || "");
+
+  if (sortOrder === "default") {
+    return rows;
+  }
+
+  return [...rows].sort((left, right) => {
+    if (sortOrder === "first-name") {
+      return collator.compare(left.firstName || "", right.firstName || "") || compareNames(left, right);
+    }
+    if (sortOrder === "last-name") {
+      return compareNames(left, right);
+    }
+
+    const leftParty = normalizePartyName(left.faction);
+    const rightParty = normalizePartyName(right.faction);
+    const leftRank = partyRanks.get(leftParty) ?? 5;
+    const rightRank = partyRanks.get(rightParty) ?? 5;
+    return leftRank - rightRank || compareNames(left, right);
+  });
 }
 
 function escapeHtml(value) {
@@ -349,6 +395,8 @@ function renderResults(rows, target) {
   state.currentTarget = target;
   state.selectedMembers = new Map(rows.filter((member) => !isAfDMember(member)).map((member) => [member.id, member]));
   result.innerHTML = "";
+  resultSortControls.hidden = rows.length === 0;
+  resultSortSelect.value = "default";
 
   if (!rows.length) {
     status.textContent = `Keine Treffer für ${target?.label || queryInput.value.trim()}.`;
@@ -362,9 +410,16 @@ function renderResults(rows, target) {
 
   const grid = document.createElement("div");
   grid.className = "result-grid";
-  grid.innerHTML = rows.map(renderMemberCard).join("");
+  grid.innerHTML = sortResults(rows).map(renderMemberCard).join("");
   result.appendChild(grid);
   updateSelectionInfo();
+}
+
+function renderSortedResults() {
+  const grid = result.querySelector(".result-grid");
+  if (grid) {
+    grid.innerHTML = sortResults(state.results).map(renderMemberCard).join("");
+  }
 }
 
 function renderSelectedMembers() {
@@ -524,6 +579,8 @@ result.addEventListener("change", (event) => {
   updateSelectionInfo();
 });
 
+resultSortSelect.addEventListener("change", renderSortedResults);
+
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const query = queryInput.value.trim();
@@ -534,6 +591,7 @@ searchForm.addEventListener("submit", async (event) => {
 
   status.textContent = "Suche…";
   result.innerHTML = "";
+  resultSortControls.hidden = true;
 
   try {
     const params = new URLSearchParams();
