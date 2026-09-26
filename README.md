@@ -70,9 +70,16 @@ Die Anwendung führt durch drei Schritte:
 
 ## E-Mail-Adressen
 
-Die Datenquelle liefert nicht immer öffentliche E-Mail-Adressen. Wenn keine Adresse auf Profil- oder Kontaktseiten gefunden wird, versucht die Anwendung, eine plausible Adresse zu ergänzen. Für bekannte Ausnahmen können feste Korrekturen im Backend hinterlegt werden.
+Es werden nur E-Mail-Adressen angezeigt, die auf der offiziellen Profilseite veröffentlicht sind. Wenn dort keine öffentliche Adresse auffindbar ist, bleibt das Feld leer. Es werden keine Adressen aus Namen abgeleitet oder durch manuelle Zuordnungen ergänzt.
+
+Bei Kontaktangaben werden zuerst die auf der Profilseite veröffentlichten Daten des Wahlkreisbüros verwendet. Kontaktdaten des Abgeordnetenbüros im Bundestag dienen als Rückfalloption.
 
 ## Datenquelle
 
 - `data/wks.json` (Wahlkreise, PLZ-Zuordnung, Basis-Informationen zu Abgeordneten)
 - Zusätzliche Profilinformationen werden zur Laufzeit direkt von den Bundestag-Profilseiten geholt.
+- `data/stammdaten/MDB_STAMMDATEN.XML` und `data/MdB-Stammdaten.zip` (amtlicher Open-Data-Export des Bundestags; Stand 29.04.2026)
+
+Quelle: [Open Data des Deutschen Bundestags](https://www.bundestag.de/services/opendata).
+
+Die Mitgliederliste wird mit den amtlichen Daten der 21. Wahlperiode abgeglichen. Für Mitglieder ohne eindeutige bisherige Wahlkreiszuordnung wird keine PLZ-Zuordnung erfunden; sie erscheinen bei der Suche nach ihrem Bundesland.
