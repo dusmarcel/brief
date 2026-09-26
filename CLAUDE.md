@@ -52,5 +52,6 @@ docker run -p 8000:8000 brief
 ## Data
 
 - `data/wks.json` — the working data file used at runtime (states → constituencies → members with PLZ arrays)
+- `data/emails.json` — MdB e-mail addresses keyed by bundestag.de profile id (or `name:<Name>` for members without a profile link); takes precedence over scraped addresses. Regenerate with `python scripts/collect_emails.py` (scrapes the Fraktion websites; entries with `"manual": true` were researched by hand and are preserved). bundestag.de itself sits behind a rate-limit challenge ("enodia"), so live profile scraping often returns nothing
 - `data/stammdaten/MDB_STAMMDATEN.XML` — the original XML source (15.2 MB) from the Bundestag open data export
 - The JSON parser uses flexible key matching (multiple possible key names for states, constituencies, members, zip codes) to be robust against format variations in the source data
