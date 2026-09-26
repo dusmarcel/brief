@@ -223,6 +223,30 @@ body {
   margin-top: 0.75rem;
 }
 
+.result-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.result-sort-controls[hidden] {
+  display: none;
+}
+
+.result-sort-controls label {
+  font-weight: 700;
+}
+
+.result-sort-controls select {
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+
 .selectable-card {
   margin-top: 0;
   border-left-width: 1px;
