@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "wks.json"
+EMAIL_FILE = BASE_DIR / "data" / "emails.json"
 STATIC_DIR = BASE_DIR / "static"
 BUNDESTAG_BASE = "https://www.bundestag.de"
 LETTER_BODY = (
@@ -257,6 +258,13 @@ def _load_data() -> dict:
         return json.load(fp)
 
 
+def _load_emails() -> Dict[str, dict]:
+    if not EMAIL_FILE.exists():
+        return {}
+    with EMAIL_FILE.open("r", encoding="utf-8") as fp:
+        return json.load(fp)
+
+
 class BundestagData:
     state_keys = (
         "federalStates",
@@ -285,8 +293,9 @@ class BundestagData:
         "postalCodes",
     )
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, emails: Optional[Dict[str, dict]] = None):
         self.data = data
+        self.emails = emails or {}
         self.profile_cache: Dict[str, dict] = {}
         self.constituency_map: Dict[str, dict] = {}
         self.member_map: Dict[str, dict] = {}
@@ -739,7 +748,16 @@ class BundestagData:
             "profileUrl": profile_url,
         }
         result.update(self._get_profile_info(profile_url))
+        known_email = self._known_email(profile_url, member.get("name") or "")
+        if known_email:
+            result["email"] = known_email
         return result
+
+    def _known_email(self, profile_url: Optional[str], name: str) -> Optional[str]:
+        match = re.search(r"-(\d+)/?$", profile_url or "")
+        key = match.group(1) if match else f"name:{name}"
+        entry = self.emails.get(key)
+        return entry.get("email") if entry else None
 
     def _extract_member_name_parts(self, member: dict) -> Tuple[str, str]:
         first = (member.get("firstName") or "").strip()
@@ -1090,7 +1108,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
 def run(host="127.0.0.1", port=8000) -> None:
     data = _load_data()
-    store = BundestagData(data)
+    store = BundestagData(data, _load_emails())
 
     class _Server(http.server.ThreadingHTTPServer):
         pass

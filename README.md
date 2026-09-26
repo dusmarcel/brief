@@ -70,7 +70,11 @@ Die Anwendung führt durch drei Schritte:
 
 ## E-Mail-Adressen
 
-Es werden nur E-Mail-Adressen angezeigt, die auf der offiziellen Profilseite veröffentlicht sind. Wenn dort keine öffentliche Adresse auffindbar ist, bleibt das Feld leer. Es werden keine Adressen aus Namen abgeleitet oder durch manuelle Zuordnungen ergänzt.
+Für alle Abgeordneten ist nach Möglichkeit eine E-Mail-Adresse hinterlegt, damit Schreiben direkt per E-Mail statt über Kontaktformulare verschickt werden können. Die Adressen stehen in `data/emails.json` und haben Vorrang vor den zur Laufzeit von bundestag.de abgerufenen Daten.
+
+- Die meisten Adressen stammen von den Abgeordnetenseiten der Fraktionen (CDU/CSU, SPD, Grüne, Linke, AfD) und werden mit `python scripts/collect_emails.py` aktualisiert.
+- Einzelne Adressen wurden manuell recherchiert (persönliche Websites, Suchergebnisse). Sie sind mit `"manual": true` und Quelle gekennzeichnet und bleiben beim erneuten Sammeln erhalten. Wo eine Adresse nicht öffentlich bestätigt ist, sondern aus dem Standardschema `vorname.nachname@bundestag.de` abgeleitet wurde, steht ein Hinweis im Feld `note`.
+- Nur wenn keine Adresse bekannt ist, wird auf das Kontaktformular verwiesen.
 
 Bei Kontaktangaben werden zuerst die auf der Profilseite veröffentlichten Daten des Wahlkreisbüros verwendet. Kontaktdaten des Abgeordnetenbüros im Bundestag dienen als Rückfalloption.
 
@@ -82,4 +86,4 @@ Bei Kontaktangaben werden zuerst die auf der Profilseite veröffentlichten Daten
 
 Quelle: [Open Data des Deutschen Bundestags](https://www.bundestag.de/services/opendata).
 
-Die Mitgliederliste wird mit den amtlichen Daten der 21. Wahlperiode abgeglichen. Für Mitglieder ohne eindeutige bisherige Wahlkreiszuordnung wird keine PLZ-Zuordnung erfunden; sie erscheinen bei der Suche nach ihrem Bundesland.
+Die Mitgliederliste entspricht dem Stand vom 27.09.2026 (abgeglichen mit den Stammdaten, der Wikipedia-Liste der 21. Wahlperiode und den Fraktionsseiten; berücksichtigt sind u. a. die Nachrücker Stefan Glaser, Christoph Naser, Michael Breilmann und Katrin Zschau). Abgeordnete werden dem Wahlkreis zugeordnet, in dem sie kandidiert haben. Mitglieder ohne Wahlkreiskandidatur erscheinen bei der Suche nach ihrem Bundesland.
