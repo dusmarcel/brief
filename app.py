@@ -132,151 +132,6 @@ def _slugify_filename(value: str) -> str:
     return slug or "dokument"
 
 
-EMAIL_OVERRIDES = {
-    ("andreas", "jung"): "andreas.jung.wk@bundestag.de",
-    ("anja", "troff-schaffarzyk"): "anja.troffschaffarzyk@bundestag.de",
-    ("anna", "aeikens"): "info@annaaeikens.de",
-    ("anne-mieke", "bremer"): "annemieke.bremer@bundestag.de",
-    ("annika", "klose"): "info@klose-annika.de",
-    ("armand", "zorn"): "mail@armandzorn.de",
-    ("astrid", "timmermann-fechter"): "astrid.timmermannfechter@bundestag.de",
-    ("awet", "tesfaiesus"): "awet.tesfaiesus@bundestag.de",
-    ("bastian", "ernst"): "kontakt@bastianernst.de",
-    ("beatrix", "von-storch"): "info@beatrixvonstorch.de",
-    ("birgit", "bessin"): "info@birgitbessin.de",
-    ("bodo", "ramelow"): "wahlkreisbuero@bodoramelow.de",
-    ("cansin", "koektuerk"): "kontakt@cansinkoektuerk.de",
-    ("caroline", "bosbach"): "info@caroline-bosbach.de",
-    ("carsten", "schneider"): "carsten.schneider@bundestag.de",
-    ("carsten", "schneider-erfurt"): "carsten.schneider@bundestag.de",
-    ("christian", "reck"): "post@christian-reck.de",
-    ("christiane", "schenderlein"): "kontakt@christiane-schenderlein.de",
-    ("christina", "baum"): "webmaster@christina-baum.berlin",
-    ("christoph", "birghan"): "christoph.birghan@afdbayern.de",
-    ("christoph", "de-vries"): "christoph.devries@bundestag.de",
-    ("christoph", "frauenpreiss"): "kontakt@christoph-frauenpreiss.de",
-    ("claudia", "moll"): "claudia.moll.wk@bundestag.de",
-    ("claudia", "weiss"): "info@claudiaweiss-bernburg.de",
-    ("daniel", "baldy"): "daniel.baldy.wk@bundestag.de",
-    ("daniel", "koelbl"): "kontakt@daniel-koelbl.de",
-    ("daniela", "rump"): "info@danielarump.de",
-    ("dario", "seifert"): "dario.seifert@afdfraktion-vr.de",
-    ("david", "gregosz"): "hallo@david-gregosz.de",
-    ("david", "preisendanz"): "mail@davidpreisendanz.de",
-    ("david", "schliesing"): "mail@davidschliesing.de",
-    ("derya", "tuerk-nachbaur"): "derya.tuerknachbaur@bundestag.de",
-    ("diana", "zimmer"): "diana.zimmer@afd-bw.de",
-    ("doris", "achelwilm"): "doris.achelwilm@dielinke-bremen.de",
-    ("elisabeth", "winkelmeier-becker"): "elisabeth.winkelmeierbecker@bundestag.de",
-    ("ellen", "demuth"): "info@ellendemuth.de",
-    ("erhard", "brucker"): "erhard.brucker@afdbayern.de",
-    ("esther", "dilcher"): "esther.dilcher.wk@bundestag.de",
-    ("felix", "banaszak"): "felix.banaszak@gruene.de",
-    ("florian", "bilic"): "kontakt@florianbilic.de",
-    ("georg", "guenther"): "info@georgguenther.de",
-    ("gregor", "gysi"): "gregor.gysi.wk@bundestag.de",
-    ("hans", "theiss"): "info@hanstheiss.de",
-    ("harald", "orthey"): "info@harald-orthey.de",
-    ("heiko", "hain"): "kontakt@heikohain.de",
-    ("helmut", "kleebank"): "helmut.kleebank.wk@bundestag.de",
-    ("hendrik", "bollmann"): "hendrik.bollmann@spdherne.de",
-    ("hendrik", "streeck"): "kontakt@hendrikstreeck.de",
-    ("inge", "graessle"): "post@inge-graessle.de",
-    ("ingo", "hahn"): "info@ingo-hahnafd.de",
-    ("iris", "nieland"): "info@irisnieland.de",
-    ("isabel", "cademartori"): "isabel.cademartori.wk@bundestag.de",
-    ("isabel", "mackensen-geis"): "isabel.mackensengeis@bundestag.de",
-    ("isabelle", "vandre"): "isabelle.vandre@dielinkepotsdam.de",
-    ("jan", "koestering"): "kontakt@jan-koestering.de",
-    ("jan", "van-aken"): "jan.vanaken@bundestag.de",
-    ("jan-marco", "luczak"): "janmarco.luczak@bundestag.de",
-    ("jan-wenzel", "schmidt"): "buero@jan-wenzel-schmidt.de",
-    ("janina", "boettger"): "janina.boettger@dielinke-lsa.de",
-    ("jeanne", "dillschneider"): "jeanne.dillschneider@gruene-saar.de",
-    ("jens", "behrens"): "info@jens-behrens.de",
-    ("jens", "peick"): "jens.peick.wk@bundestag.de",
-    ("johann", "martel"): "johann.martel@afd-bw.de",
-    ("johannes", "rothenberger"): "post@johannesrothenberger.de",
-    ("johannes", "wiegelmann"): "post@johanneswiegelmann.de",
-    ("johannes", "winkel"): "info@johanneswinkel.de",
-    ("jorrit", "bosch"): "jorrit.bosch@die-linkebs.de",
-    ("juergen", "cosse"): "juergen.cosse.wk@bundestag.de",
-    ("kassem", "taher-saleh"): "kassem.tahersaleh@bundestag.de",
-    ("katja", "strauss-koester"): "katja.strausskoester@bundestag.de",
-    ("katrin", "fey"): "katrin.fey@die-linke-siegen-wittgenstein.de",
-    ("kay-uwe", "ziegler"): "kayuwe.ziegler@bundestag.de",
-    ("kirsten", "kappert-gonther"): "kirsten.kappertgonther@bundestag.de",
-    ("klaus-peter", "willsch"): "klauspeter.willsch.wk@bundestag.de",
-    ("konrad", "koerner"): "konrad.koerner@ju-mittelfranken.de",
-    ("kurt", "kleinschmidt"): "kontakt@kleinschmidt-kurt.de",
-    ("lars", "schieske"): "kontakt@lars-schieske.de",
-    ("leif-erik", "holm"): "leiferik.holm@bundestag.de",
-    ("lena", "gumnior"): "lena.gumnior@gruene-kv-verden.de",
-    ("marcel", "queckemeyer"): "marcelqueckemeyer@icloud.com",
-    ("martin", "kroeber"): "martin.kroeber.wk@bundestag.de",
-    ("mathias", "weiser"): "mathias.weiser@afdvogtland.de",
-    ("matthias", "rentzsch"): "matthias.rentzsch@afddd.de",
-    ("maximilian", "krah"): "maximilian.krah@europarl.europa.eu",
-    ("michael", "hose"): "kontakt@michaelhose.de",
-    ("michael", "kaufmann"): "michael.kaufmann@bundestag.de",
-    ("michael", "thews"): "spd@michaelthews.de",
-    ("mirze", "edis"): "mirze.edis@dielinke-du.de",
-    ("nicolas", "zippelius"): "mail@nicolas-zippelius.de",
-    ("nils", "schmid"): "wahlkreis@nilsschmid.de",
-    ("oliver", "poepsel"): "info@oliverpoepsel.de",
-    ("omid", "nouripour"): "omid.nouripour.wk@bundestag.de",
-    ("pascal", "reddig"): "kontakt@pascalreddig.de",
-    ("paul", "schmidt"): "info@drpaulschmidt.de",
-    ("philipp", "amthor"): "kontakt@philipp-amthor.de",
-    ("philipp", "rottwilm"): "kontakt@philipprottwilm.de",
-    ("raimond", "scheirich"): "raimond.scheirich@afdbayern.de",
-    ("rainer", "galla"): "presse@rainer-galla.de",
-    ("ralph", "edelhaeusser"): "kontakt@ralphedelhaeusser.de",
-    ("rebecca", "lenhard"): "rebecca.lenhard@gruene-nbg.de",
-    ("reinhard", "brandl"): "reinhard.brandl.wk@bundestag.de",
-    ("rene", "bochmann"): "rene.bochmann@afdnordsachsen.de",
-    ("rita", "schwarzeluehr-sutter"): "rita.schwarzeluehrsutter@bundestag.de",
-    ("ronja", "kemmer"): "ronja.kemmer.wk@bundestag.de",
-    ("ruben", "rupp"): "ruben.rupp@afd-bw.de",
-    ("sabine", "dittmar"): "sabine.dittmar.wk@bundestag.de",
-    ("sahra", "mirow"): "sahra.mirow@dielinke-bw.de",
-    ("sandra", "carstensen"): "mail@sandra-carstensen.de",
-    ("sascha", "van-beek"): "info@saschavanbeek.de",
-    ("sascha", "wagner"): "sascha.wagner@dielinke-nrw.de",
-    ("saskia", "ludwig"): "buero@saskia-ludwig.de",
-    ("sebastian", "maack"): "sebastian@maack.net",
-    ("sebastian", "muenzenmaier"): "info@sebastianmuenzenmaier.de",
-    ("sebastian", "steineke"): "info@sebastian-steineke.de",
-    ("simone", "fischer"): "simone.fischer@gruene-stuttgart.de",
-    ("stefan", "seidler"): "stefan.seidler.wk@bundestag.de",
-    ("stella", "merendino"): "info@stella-merendino.de",
-    ("stephan", "albani"): "info@stephan-albani.de",
-    ("tarek", "al-wazir"): "tarek.alwazir.wk@bundestag.de",
-    ("thomas", "ladzinski"): "thomas.ladzinski@afd-dd.de",
-    ("thomas", "silberhorn"): "thomas.silberhorn.wk@bundestag.de",
-    ("thomas", "stephan"): "info@afd-thomas-stephan.de",
-    ("ulrich", "von-zons"): "ulrich.vonzons@bundestag.de",
-    ("ulrike", "schielke-ziesing"): "ulrike.schielkeziesing@bundestag.de",
-    ("uwe", "feiler"): "team@uwe-feiler.de",
-    ("victoria", "brossart"): "info@victoria-brossart.de",
-    ("vivian", "tauschwitz"): "vivian.tauschwitz@cduheidekreis.de",
-    ("volker", "mayer-lay"): "volker.mayerlay@bundestag.de",
-    ("volker", "scheurell"): "volker.scheurell@afd-wb.de",
-    ("wiebke", "esdar"): "wiebke.esdar.wk@bundestag.de",
-    ("wilhelm", "gebhard"): "info@wilhelmgebhard.de",
-    ("wolfgang", "stefinger"): "info@wolfgang-stefinger.de",
-    ("wolfgang", "wiehle"): "kontakt@wolfgang-wiehle.de",
-}
-
-
-def _get_email_override(first_name: str, last_name: str) -> Optional[str]:
-    first = _slugify_email_part(_strip_leading_titles(first_name))
-    last = _slugify_email_part(_strip_leading_titles(last_name))
-    if not first or not last:
-        return None
-    return EMAIL_OVERRIDES.get((first, last))
-
-
 def _split_address_lines(value: str) -> List[str]:
     text = (value or "").replace("\r\n", "\n").replace("\r", "\n")
     if "\n" in text:
@@ -356,14 +211,10 @@ def _to_child_list(value) -> List[dict]:
 
 
 def _extract_office_address(html: str, heading: str) -> Optional[str]:
-    section_match = re.search(
-        rf"(?is)<h[23][^>]*>\s*{re.escape(heading)}\s*</h[23]>(.*?)(?:<h[23]|</section>|</article>|<footer|<aside|$)",
-        html,
-    )
-    if not section_match:
+    block = _extract_office_section(html, heading)
+    if not block:
         return None
 
-    block = section_match.group(1)
     block = re.sub(r"</?(?:p|li|ul|ol|div|h[1-6])[^>]*>", "\n", block, flags=re.I)
     block = re.sub(r"<br\s*/?>", "\n", block, flags=re.I)
     block = re.sub(r"<[^>]+>", "", block)
@@ -376,6 +227,8 @@ def _extract_office_address(html: str, heading: str) -> Optional[str]:
 
     address_lines: List[str] = []
     for line in clean_lines:
+        if "@" in line:
+            continue
         if line.lower().startswith("kontakt"):
             break
         address_lines.append(line)
@@ -386,6 +239,16 @@ def _extract_office_address(html: str, heading: str) -> Optional[str]:
         return None
 
     return ", ".join(address_lines).strip(", ")
+
+
+def _extract_office_section(html: str, heading: str) -> Optional[str]:
+    section_match = re.search(
+        rf"(?is)<h[23][^>]*>\s*{re.escape(heading)}\s*</h[23]>(.*?)(?:<h[23]|</section>|</article>|<footer|<aside|$)",
+        html,
+    )
+    if not section_match:
+        return None
+    return section_match.group(1)
 
 
 def _load_data() -> dict:
@@ -500,6 +363,24 @@ class BundestagData:
                 if key in seen:
                     continue
                 seen.add(key)
+                results.append(result)
+
+        if target["kind"] == "state":
+            seen_members = {
+                result["profileUrl"] or _normalize_text(result["name"])
+                for result in results
+            }
+            for member_meta in target.get("stateMembers", []):
+                result = self._build_member_result(
+                    member_meta["raw"],
+                    member_meta["state"],
+                    "Keine Wahlkreiszuordnung",
+                    member_meta["id"],
+                )
+                member_key = result["profileUrl"] or _normalize_text(result["name"])
+                if member_key in seen_members:
+                    continue
+                seen_members.add(member_key)
                 results.append(result)
         return results
 
@@ -631,6 +512,21 @@ class BundestagData:
                 aliases=[state_name],
                 constituency_ids=state_constituencies,
             )
+            state_target = self.search_targets[f"state:{state_name}"]
+            state_target["stateMembers"] = []
+            for index, member in enumerate(_to_member_list(state.get("mdbs")), start=1):
+                if not isinstance(member, dict):
+                    continue
+                member_name = member.get("name") or f"{member.get('firstName', '')} {member.get('lastName', '')}".strip()
+                member_id = f"state:{state_name}:{member.get('mdbId') or member_name or index}"
+                member_meta = {
+                    "id": member_id,
+                    "raw": member,
+                    "state": state_name,
+                    "constituency": "Keine Wahlkreiszuordnung",
+                }
+                self.member_map[member_id] = member_meta
+                state_target["stateMembers"].append(member_meta)
 
     def _register_constituency(self, state_name: str, constituency: dict) -> str:
         const_id = f"{state_name}:{constituency.get('number')}:{constituency.get('name')}"
@@ -836,17 +732,6 @@ class BundestagData:
             "profileUrl": profile_url,
         }
         result.update(self._get_profile_info(profile_url))
-        override_email = _get_email_override(first, last)
-        if override_email:
-            result["email"] = override_email
-            result["emailGuessed"] = False
-        elif not result.get("email"):
-            guessed_email = self._guess_bundestag_email(first, last)
-            if guessed_email:
-                result["email"] = guessed_email
-                result["emailGuessed"] = True
-        else:
-            result["emailGuessed"] = False
         return result
 
     def _extract_member_name_parts(self, member: dict) -> Tuple[str, str]:
@@ -871,16 +756,6 @@ class BundestagData:
         first = _strip_leading_titles(first)
         first, last = _merge_name_particles(first, last)
         return first.strip(), last.strip()
-
-    def _guess_bundestag_email(self, first_name: str, last_name: str) -> Optional[str]:
-        first = _slugify_email_part(_strip_leading_titles(first_name))
-        last = _slugify_email_part(_strip_leading_titles(last_name))
-        if not first or not last:
-            return None
-        override = EMAIL_OVERRIDES.get((first, last))
-        if override:
-            return override
-        return f"{first}.{last}@bundestag.de"
 
     def _scan(
         self,
@@ -990,24 +865,38 @@ class BundestagData:
         if not html:
             return data
 
-        emails = re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", html)
-        data["email"] = emails[0] if emails else None
+        constituency_office = _extract_office_section(html, "Wahlkreisbüro")
+        parliamentary_office = _extract_office_section(html, "Abgeordnetenbüro")
+        office_sections = [section for section in (constituency_office, parliamentary_office) if section]
 
-        contact_match = re.search(
-            r'href="([^"]*?/services/form(?:ul)?aro/contactform[^"]*?)"',
-            html,
-            flags=re.I,
-        )
-        if contact_match:
-            data["contactFormUrl"] = _to_absolute(contact_match.group(1))
-        else:
-            contact_match = re.search(r'href="([^"]*?contactform[^"]*?)"', html, flags=re.I)
+        for section in office_sections:
+            emails = re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", section)
+            if emails:
+                data["email"] = emails[0]
+                break
+
+        for section in office_sections + [html]:
+            contact_match = re.search(
+                r'href="([^"]*?/services/form(?:ul)?aro/contactform[^"]*?)"',
+                section,
+                flags=re.I,
+            )
+            if not contact_match:
+                contact_match = re.search(
+                    r'href="([^"]*?contactform[^"]*?)"', section, flags=re.I
+                )
             if contact_match:
                 data["contactFormUrl"] = _to_absolute(contact_match.group(1))
+                break
 
-        address = _extract_office_address(html, "Wahlkreisbüro")
-        if not address:
-            address = _extract_office_address(html, "Abgeordnetenbüro")
+        if not data["email"]:
+            emails = re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", html)
+            data["email"] = emails[0] if emails else None
+
+        address = (
+            _extract_office_address(html, "Wahlkreisbüro")
+            or _extract_office_address(html, "Abgeordnetenbüro")
+        )
 
         if not address:
             text = re.sub(r"<[^>]+>", " ", html)
