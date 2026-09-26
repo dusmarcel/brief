@@ -505,12 +505,16 @@ class BundestagData:
                             constituency_id=const_id,
                         )
 
+            state_aliases = [state_name]
+            if _normalize_text(state_name) == "nordrhein westfalen":
+                state_aliases.append("NRW")
+
             self._register_target(
                 target_id=f"state:{state_name}",
                 kind="state",
                 label=state_name,
                 subtitle="Bundesland",
-                aliases=[state_name],
+                aliases=state_aliases,
                 constituency_ids=state_constituencies,
             )
             state_target = self.search_targets[f"state:{state_name}"]
