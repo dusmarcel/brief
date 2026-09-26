@@ -1,8 +1,12 @@
-const LETTER_BODY = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+const LETTER_BODY = `als Abgeordnete*r meines Wahlkreises möchte ich Sie dringend bitten, sich in den laufenden Haushaltsverhandlungen für die ausreichende Weiterfinanzierung der Asylverfahrensberatung einzusetzen.
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+Die Asylverfahrensberatung ist ein notwendiges Instrument, um faire und sachlich richtige Asylverfahren zu gewährleisten. Mitarbeitende der Wohlfahrtsverbände erbringen diese Beratung mit großem persönlichen Engagement für schutzsuchende Menschen.
 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+Als Rechtsanwält*in weiß ich aus der Praxis: Es genügt nicht, Rechte zu haben, man muss sie auch kennen, um sie wahrnehmen zu können. Die Asylverfahrensberatung unterstützt Asylsuchende dabei, im komplizierten Asylverfahren ihre Schutzbedürftigkeit deutlich zu machen. Sie trägt damit auch zu qualitativ besseren Asylentscheidungen und mehr Rechtssicherheit bei. Sie erleichtert die Verfahren beim Bundesamt für Migration und Flüchtlinge. Sie hilft, unnötige Klagen vor den Verwaltungsgerichten zu vermeiden. Sie kann auch nicht durch die geplante behördliche Rechtsauskunft ersetzt werden, die keine individuell auf den Einzelfall bezogene Beratung bietet.
+
+Im Haushaltsplan für 2027 sind für die Asylverfahrensberatung in ganz Deutschland nur noch fünf Millionen Euro vorgesehen. Ein Fünftel des Ansatzes im aktuellen Haushalt, und schon mit den derzeitigen 25 Millionen Euro lässt sich die Aufgabe eigentlich nicht bewältigen. Ursprünglich wollte Bundesinnenminister Dobrindt die Mittel für die Beratung sogar ganz streichen, obwohl der Bund gesetzlich verpflichtet ist, die Beratung zu fördern. Zudem schreibt das neue EU-Asylrecht vor, dass jeder asylsuchende Mensch Anspruch auf eine kostenlose und unabhängige Rechtsberatung hat, wie die Wohlfahrtsverbände sie erbringen. Die massive Kürzung der Mittel ist nicht nur eklatant rechtswidrig. Sie ist mit Blick auf den Nutzen einer sachgerechten Beratung für die Asylsuchenden wie für das Bundesamt auch kurzsichtig.
+
+Bitte sorgen Sie deshalb dafür, dass die Asylverfahrensberatung weiterhin erbracht werden kann.`;
 
 const state = {
   currentSuggestions: [],
