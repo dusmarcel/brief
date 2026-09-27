@@ -98,16 +98,15 @@ In Schritt 3 wählen die Anwender*innen einmal oben ihren E-Mail-Anbieter; jede 
 | Auswahl | Schaltfläche |
 | --- | --- |
 | Mailprogramm auf diesem Gerät | `mailto:`-Link, öffnet eine fertig ausgefüllte E-Mail |
-| Gmail, Outlook.com, Outlook (Microsoft 365) | öffnet eine fertig ausgefüllte E-Mail im Webmailer (Anmeldung vorausgesetzt) |
-| GMX, WEB.DE, t-online | öffnet nur den Webmailer; Adresse, Betreff und Text werden über die Kopier-Schaltflächen eingefügt |
-| Anderer Anbieter | nur Kopier-Schaltflächen |
+| Gmail, Outlook.com, Outlook (Microsoft 365), Yahoo Mail | öffnet eine fertig ausgefüllte E-Mail im Webmailer (Anmeldung vorausgesetzt) |
+| Anderer Anbieter (z. B. GMX, WEB.DE, t-online) | nur Kopier-Schaltflächen |
 
-Für das Mailprogramm sowie Gmail und Outlook gibt es zusätzlich eine Schaltfläche, die die E-Mails an alle ausgewählten Personen auf einmal öffnet:
+Außer bei „Anderer Anbieter“ gibt es zusätzlich eine Schaltfläche, die die E-Mails an alle ausgewählten Personen auf einmal öffnet:
 
 - **Mailprogramm:** Die E-Mails werden im Abstand von einer halben Sekunde nacheinander geöffnet. Je nach Browser muss jede einzeln bestätigt werden.
-- **Gmail / Outlook:** Jede E-Mail öffnet sich in einem eigenen Tab. Browser lassen pro Klick meist nur einen neuen Tab zu und blockieren die übrigen als Pop-ups. Die Seite erkennt das und bietet dann „Restliche … E-Mails öffnen“ an; nachdem Pop-ups für die Seite erlaubt wurden, öffnet ein weiterer Klick den Rest.
+- **Webmailer:** Jede E-Mail öffnet sich in einem eigenen Tab. Browser lassen pro Klick meist nur einen neuen Tab zu und blockieren die übrigen als Pop-ups. Die Seite erkennt das und bietet dann „Restliche … E-Mails öffnen“ an; nachdem Pop-ups für die Seite erlaubt wurden, öffnet ein weiterer Klick den Rest.
 
-GMX, WEB.DE und t-online bieten keinen öffentlich dokumentierten Link, der ein vorausgefülltes Mailfenster öffnet. Wer dort ein Postfach hat und die Mail trotzdem vorausgefüllt haben möchte, kann den Webmailer im Browser als Standard für E-Mail-Links einrichten (sofern der Anbieter das unterstützt) und „Mailprogramm auf diesem Gerät“ wählen. Weitere Anbieter lassen sich in `MAIL_PROVIDERS` in `static/app.js` ergänzen.
+Aufgeführt sind nur Anbieter, deren Webmailer sich über einen Link mit Empfänger, Betreff und Text vorausgefüllt öffnen lässt. GMX, WEB.DE, t-online, iCloud, Proton und andere bieten das nicht. Wer dort ein Postfach hat und die Mail trotzdem vorausgefüllt haben möchte, kann den Webmailer im Browser als Standard für E-Mail-Links einrichten (sofern der Anbieter das unterstützt) und „Mailprogramm auf diesem Gerät“ wählen. Weitere Anbieter lassen sich in `MAIL_PROVIDERS` in `static/app.js` ergänzen.
 
 Einige Mailprogramme (insbesondere Outlook unter Windows) kürzen sehr lange `mailto:`-Links; dann hilft „Text kopieren“. Für Personen ohne E-Mail-Adresse wird, soweit vorhanden, auf das Kontaktformular verwiesen.
 

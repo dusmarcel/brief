@@ -232,8 +232,8 @@ function getLetterBody(member, sender) {
 // Set to "" to address the MdBs themselves.
 const MAIL_TEST_RECIPIENT = "marcel@aufentha.lt";
 
-// Providers with a compose deep link get a prefilled message; for the others (no public compose URL)
-// the button only opens the webmailer and address, subject and text are copied in by hand.
+// Only providers whose compose link can prefill recipient, subject and body are listed (GMX, WEB.DE,
+// t-online, iCloud, Proton etc. have none); everyone else uses "other" and the copy buttons.
 const MAIL_PROVIDERS = {
   mailto: {
     label: "Mailprogramm auf diesem Gerät",
@@ -265,28 +265,18 @@ const MAIL_PROVIDERS = {
       `https://outlook.office.com/mail/deeplink/compose?${buildQuery({ to, subject, body })}`,
     hint: "Öffnet eine fertig ausgefüllte E-Mail in Outlook im Web. Du musst dort angemeldet sein.",
   },
-  gmx: {
-    label: "GMX",
-    action: "GMX öffnen",
-    url: "https://www.gmx.net/",
-  },
-  webde: {
-    label: "WEB.DE",
-    action: "WEB.DE öffnen",
-    url: "https://web.de/",
-  },
-  tonline: {
-    label: "t-online",
-    action: "t-online E-Mail öffnen",
-    url: "https://email.t-online.de/",
+  yahoo: {
+    label: "Yahoo Mail",
+    action: "In Yahoo Mail öffnen",
+    actionAll: "Alle E-Mails in Yahoo Mail öffnen",
+    compose: (to, subject, body) => `https://compose.mail.yahoo.com/?${buildQuery({ to, subject, body })}`,
+    hint: "Öffnet eine fertig ausgefüllte E-Mail in Yahoo Mail. Du musst dort angemeldet sein.",
   },
   other: {
-    label: "Anderer Anbieter",
-    hint: "Kopiere Adresse, Betreff und Text und füge sie in eine neue E-Mail ein.",
+    label: "Anderer Anbieter (z. B. GMX, WEB.DE, t-online)",
+    hint: "Dein Anbieter kann keine vorausgefüllte E-Mail öffnen. Beginne dort eine neue E-Mail und füge Adresse, Betreff und Text über die Kopier-Schaltflächen ein.",
   },
 };
-const COPY_ONLY_HINT =
-  "Dieser Anbieter bietet keine Möglichkeit, eine E-Mail vorausgefüllt zu öffnen. Öffne den Webmailer, beginne eine neue E-Mail und füge Adresse, Betreff und Text über die Kopier-Schaltflächen ein.";
 const EMAIL_PROVIDER_STORAGE_KEY = "brief.emailProvider";
 
 function loadEmailProvider() {
@@ -322,10 +312,10 @@ function buildQuery(params) {
 
 function buildProviderLink(member, sender) {
   const provider = MAIL_PROVIDERS[state.emailProvider];
-  if (provider.compose) {
-    return provider.compose(getMailRecipient(member), getMailSubject(member), getLetterBody(member, sender));
+  if (!provider.compose) {
+    return "";
   }
-  return provider.url || "";
+  return provider.compose(getMailRecipient(member), getMailSubject(member), getLetterBody(member, sender));
 }
 
 function renderProviderSelect() {
@@ -340,7 +330,7 @@ function renderEmailActions() {
   const selected = [...state.selectedMembers.values()];
 
   const provider = MAIL_PROVIDERS[state.emailProvider];
-  emailProviderHint.textContent = provider.hint || COPY_ONLY_HINT;
+  emailProviderHint.textContent = provider.hint;
 
   openAllEmailsButton.hidden = !provider.actionAll;
   openAllEmailsButton.textContent = state.pendingBulkIds

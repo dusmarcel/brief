@@ -74,31 +74,34 @@
         </div>
 
         <form id="letter-form" class="letter-form">
-          <div class="form-grid">
-            <label>
-              <span>Name *</span>
-              <input id="sender-name" name="name" required />
-            </label>
-            <label>
-              <span>Zusatz zum Namen</span>
-              <input id="sender-name-extra" name="nameExtra" value="Rechtsanwält*in" placeholder="z. B. Rechtsanwältin, MdL a. D." />
-            </label>
-            <label class="full-width">
-              <span>Anschrift *</span>
-              <textarea id="sender-address" name="address" rows="4" required placeholder="Straße Hausnummer&#10;PLZ Ort"></textarea>
-            </label>
-            <label>
-              <span>E-Mail-Adresse</span>
-              <input id="sender-email" name="email" type="email" />
-            </label>
-            <label>
-              <span>Geschlecht</span>
-              <select id="sender-gender" name="gender">
-                <option value="" selected>keine Angabe/divers</option>
-                <option value="m">männlich</option>
-                <option value="w">weiblich</option>
-              </select>
-            </label>
+          <div class="sender-details" role="group" aria-labelledby="sender-details-title">
+            <h2 id="sender-details-title">Angaben zu dir</h2>
+            <div class="form-grid">
+              <label>
+                <span>Name *</span>
+                <input id="sender-name" name="name" required />
+              </label>
+              <label>
+                <span>Zusatz zum Namen</span>
+                <input id="sender-name-extra" name="nameExtra" value="Rechtsanwält*in" placeholder="z. B. Rechtsanwältin, MdL a. D." />
+              </label>
+              <label class="full-width">
+                <span>Anschrift *</span>
+                <textarea id="sender-address" name="address" rows="4" required placeholder="Straße Hausnummer&#10;PLZ Ort"></textarea>
+              </label>
+              <label>
+                <span>E-Mail-Adresse</span>
+                <input id="sender-email" name="email" type="email" />
+              </label>
+              <label>
+                <span>Geschlecht</span>
+                <select id="sender-gender" name="gender">
+                  <option value="" selected>keine Angabe/divers</option>
+                  <option value="m">männlich</option>
+                  <option value="w">weiblich</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <div class="letter-preview-block">

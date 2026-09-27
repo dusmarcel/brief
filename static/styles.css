@@ -299,6 +299,7 @@ body {
 }
 
 .selection-summary,
+.sender-details,
 .letter-preview-block {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid #dbe5f5;
@@ -308,6 +309,7 @@ body {
 }
 
 .selection-summary h2,
+.sender-details h2,
 .letter-preview-block h2 {
   margin: 0 0 0.85rem;
   font-size: 1.15rem;
