@@ -17,6 +17,7 @@ from typing import Dict, List, Optional, Set, Tuple
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "wks.json"
 EMAIL_FILE = BASE_DIR / "data" / "emails.json"
+GENDER_FILE = BASE_DIR / "data" / "genders.json"
 STATIC_DIR = BASE_DIR / "static"
 BUNDESTAG_BASE = "https://www.bundestag.de"
 LETTER_BODY = (
@@ -34,6 +35,35 @@ SENDER_PROFESSION = {"m": "Als Rechtsanwalt", "w": "Als Rechtsanwältin"}
 def _letter_text(gender: str) -> str:
     profession = SENDER_PROFESSION.get(gender)
     return LETTER_BODY.replace("Als Rechtsanwält*in", profession) if profession else LETTER_BODY
+
+
+def _salutation_title(academic_title: str, gender: str) -> str:
+    # Only the highest degree is named in a salutation: "Professor" (spelled out) outranks "Dr.";
+    # additions such as "med.", "-Ing." or "habil." are left out.
+    if re.search(r"\bprof", academic_title, flags=re.I):
+        return {"m": "Professor", "w": "Professorin"}.get(gender, "Prof.")
+    if re.search(r"\bdr\b", academic_title, flags=re.I):
+        return "Dr."
+    return ""
+
+
+def _default_salutation(
+    gender: str, last_name: str, full_name: str, academic_title: str = "", noble_rank: str = ""
+) -> str:
+    title = _salutation_title(academic_title, gender)
+    if last_name and gender in ("m", "w"):
+        greeting = "Sehr geehrter" if gender == "m" else "Sehr geehrte"
+        if noble_rank and not title:
+            # Traditional form: the rank takes the place of "Herr"/"Frau" ("Sehr geehrter Freiherr von …").
+            return f"{greeting} {noble_rank} {last_name},"
+        form = "Herr" if gender == "m" else "Frau"
+        return f"{greeting} {form} {f'{title} ' if title else ''}{last_name},"
+    return f"Guten Tag, {f'{title} ' if title else ''}{full_name},"
+
+
+def _address_name(gender: str, academic_title: str, full_name: str) -> str:
+    form = {"m": "Herrn", "w": "Frau"}.get(gender, "")
+    return " ".join(part for part in (form, academic_title, full_name) if part)
 
 
 def _normalize_zip(code: str) -> str:
@@ -87,27 +117,47 @@ def _slugify_email_part(value: str) -> str:
     return text
 
 
+ACADEMIC_TITLES = (
+    r"prof(?:essor)?|"
+    r"dr(?:\s*[-./]*\s*(?:ing|jur|med\.?\s*dent|med\.?\s*vet|med|phil|rer\.?\s*nat|rer\.?\s*pol|theol))?|"
+    r"habil|"
+    r"dipl(?:\s*[-./]*\s*(?:ing|jur|kfm|volksw|pol|soz))?|"
+    r"m\.?a|"
+    r"b\.?a|"
+    r"m\.?sc|"
+    r"b\.?sc|"
+    r"ll\.?m"
+)
+LEADING_TITLES_RE = re.compile(rf"^(?:(?:{ACADEMIC_TITLES}|frhr|freiherr)\.?\s+)+", flags=re.I)
+LEADING_ACADEMIC_TITLES_RE = re.compile(rf"^(?:(?:{ACADEMIC_TITLES})\.?\s+)+", flags=re.I)
+NOBLE_RANKS = {
+    rank.lower(): rank
+    for rank in (
+        "Freiherr", "Freifrau", "Freiin", "Graf", "Gräfin", "Baron", "Baronin",
+        "Fürst", "Fürstin", "Prinz", "Prinzessin", "Herzog", "Herzogin",
+    )
+}
+NOBLE_RANKS.update({"frhr": "Freiherr", "frfr": "Freifrau", "frfr.": "Freifrau"})
+
+
 def _strip_leading_titles(value: str) -> str:
     text = _normalize_name_spacing(value)
     if not text:
         return ""
+    return LEADING_TITLES_RE.sub("", text).strip(" ,")
 
-    title_pattern = re.compile(
-        r"^(?:(?:"
-        r"prof(?:essor)?|"
-        r"dr(?:\s*[-./]?\s*(?:ing|jur|med|med dent|med vet|phil|rer nat|rer pol|theol))?|"
-        r"habil|"
-        r"frhr|freiherr|"
-        r"dipl(?:\s*[-./]?\s*(?:ing|jur|kfm|volksw|pol|soz))?|"
-        r"m\.?a|"
-        r"b\.?a|"
-        r"m\.?sc|"
-        r"b\.?sc|"
-        r"ll\.?m"
-        r")\.?\s+)+",
-        flags=re.I,
-    )
-    return re.sub(title_pattern, "", text).strip(" ,")
+
+def _leading_academic_title(value: str) -> str:
+    match = LEADING_ACADEMIC_TITLES_RE.match(_normalize_name_spacing(value) + " ")
+    return match.group(0).strip() if match else ""
+
+
+def _noble_rank(first_name: str) -> str:
+    for token in first_name.split():
+        rank = NOBLE_RANKS.get(token.lower().rstrip("."))
+        if rank:
+            return rank
+    return ""
 
 
 def _normalize_name_spacing(value: str) -> str:
@@ -115,7 +165,7 @@ def _normalize_name_spacing(value: str) -> str:
 
 
 def _merge_name_particles(first: str, last: str) -> Tuple[str, str]:
-    particles = {"von", "van", "de", "del", "den", "der", "zu", "zur", "zum", "di", "du", "la", "le"}
+    particles = {"von", "van", "de", "del", "den", "der", "zu", "zur", "zum", "di", "du", "la", "le", "da", "das", "do", "dos"}
     first_tokens = [token for token in re.split(r"\s+", _normalize_name_spacing(first)) if token]
     last_tokens = [token for token in re.split(r"\s+", _normalize_name_spacing(last)) if token]
 
@@ -266,10 +316,10 @@ def _load_data() -> dict:
         return json.load(fp)
 
 
-def _load_emails() -> Dict[str, dict]:
-    if not EMAIL_FILE.exists():
+def _load_member_file(path: Path) -> Dict[str, dict]:
+    if not path.exists():
         return {}
-    with EMAIL_FILE.open("r", encoding="utf-8") as fp:
+    with path.open("r", encoding="utf-8") as fp:
         return json.load(fp)
 
 
@@ -301,9 +351,15 @@ class BundestagData:
         "postalCodes",
     )
 
-    def __init__(self, data: dict, emails: Optional[Dict[str, dict]] = None):
+    def __init__(
+        self,
+        data: dict,
+        emails: Optional[Dict[str, dict]] = None,
+        genders: Optional[Dict[str, dict]] = None,
+    ):
         self.data = data
         self.emails = emails or {}
+        self.genders = genders or {}
         self.profile_cache: Dict[str, dict] = {}
         self.constituency_map: Dict[str, dict] = {}
         self.member_map: Dict[str, dict] = {}
@@ -428,7 +484,9 @@ class BundestagData:
             )
         return results
 
-    def build_letter_archive(self, member_ids: List[str], sender: dict) -> bytes:
+    def build_letter_archive(
+        self, member_ids: List[str], sender: dict, salutations: Optional[Dict[str, str]] = None
+    ) -> bytes:
         recipients = self.get_members_by_ids(member_ids)
         if not recipients:
             raise ValueError("Bitte mindestens eine Empfängerin oder einen Empfänger auswählen.")
@@ -445,6 +503,9 @@ class BundestagData:
         archive = io.BytesIO()
         with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for index, recipient in enumerate(recipients, start=1):
+                custom_salutation = str((salutations or {}).get(recipient["id"]) or "").strip()
+                if custom_salutation:
+                    recipient = {**recipient, "salutation": custom_salutation}
                 filename = self._build_letter_filename(index, recipient)
                 document = self._render_letter_rtf(
                     recipient, sender_name, sender_extra, sender_address, sender_email, sender_gender
@@ -688,7 +749,12 @@ class BundestagData:
         if sender_email:
             sender_lines.append(sender_email)
 
-        recipient_lines = [recipient.get("fullName") or recipient.get("name") or "Bundestagsabgeordnete Person"]
+        recipient_lines = [
+            recipient.get("addressName")
+            or recipient.get("fullName")
+            or recipient.get("name")
+            or "Bundestagsabgeordnete Person"
+        ]
         if recipient.get("officeAddress") and recipient["officeAddress"] != "Nicht verfügbar":
             recipient_lines.extend(_split_address_lines(recipient["officeAddress"]))
         else:
@@ -696,8 +762,9 @@ class BundestagData:
             if recipient.get("state"):
                 recipient_lines.append(recipient["state"])
 
-        salutation_name = recipient.get("fullName") or recipient.get("name") or "Abgeordnete Person"
-        salutation = f"Guten Tag, {salutation_name},"
+        salutation = recipient.get("salutation") or _default_salutation(
+            "", "", recipient.get("fullName") or recipient.get("name") or "Abgeordnete Person"
+        )
         sender_city = _extract_city_from_address(sender_address)
         today = date.today().strftime("%d.%m.%Y")
         date_line = f"{sender_city}, den {today}" if sender_city else today
@@ -735,6 +802,8 @@ class BundestagData:
     ) -> dict:
         first, last = self._extract_member_name_parts(member)
         name = member.get("name") or f"{first} {last}".strip()
+        raw_name = _normalize_name_spacing(member.get("name") or "")
+        academic_title = _leading_academic_title(raw_name.split(",", 1)[-1])
         display_name = _format_member_display_name(member.get("name") or "", first, last) or name
         full_name = _normalize_name_spacing(f"{first} {last}") or name
 
@@ -754,22 +823,29 @@ class BundestagData:
             "fullName": full_name or "Unbekannte Person",
             "firstName": first,
             "lastName": last,
+            "academicTitle": academic_title,
             "faction": faction,
             "constituency": constituency_name,
             "state": state_name,
             "profileUrl": profile_url,
         }
         result.update(self._get_profile_info(profile_url))
-        known_email = self._known_email(profile_url, member.get("name") or "")
+        known_email = self._known_entry(self.emails, profile_url, member.get("name") or "").get("email")
         if known_email:
             result["email"] = known_email
+        gender = self._known_entry(self.genders, profile_url, member.get("name") or "").get("gender") or ""
+        result["gender"] = gender
+        result["addressName"] = _address_name(gender, academic_title, result["fullName"])
+        result["salutation"] = _default_salutation(
+            gender, last, result["fullName"], academic_title, _noble_rank(first)
+        )
         return result
 
-    def _known_email(self, profile_url: Optional[str], name: str) -> Optional[str]:
+    @staticmethod
+    def _known_entry(entries: Dict[str, dict], profile_url: Optional[str], name: str) -> dict:
         match = re.search(r"-(\d+)/?$", profile_url or "")
         key = match.group(1) if match else f"name:{name}"
-        entry = self.emails.get(key)
-        return entry.get("email") if entry else None
+        return entries.get(key) or {}
 
     def _extract_member_name_parts(self, member: dict) -> Tuple[str, str]:
         first = (member.get("firstName") or "").strip()
@@ -1073,9 +1149,12 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         member_ids = payload.get("memberIds") or []
         sender = payload.get("sender") or {}
+        salutations = payload.get("salutations")
+        if not isinstance(salutations, dict):
+            salutations = {}
 
         try:
-            archive = self.server.store.build_letter_archive(member_ids, sender)
+            archive = self.server.store.build_letter_archive(member_ids, sender, salutations)
         except ValueError as exc:
             self._json_error(str(exc), status=400)
             return
@@ -1120,7 +1199,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
 def run(host="127.0.0.1", port=8000) -> None:
     data = _load_data()
-    store = BundestagData(data, _load_emails())
+    store = BundestagData(data, _load_member_file(EMAIL_FILE), _load_member_file(GENDER_FILE))
 
     class _Server(http.server.ThreadingHTTPServer):
         pass

@@ -357,6 +357,44 @@ body {
   font-size: 0.92rem;
 }
 
+.salutation-editor {
+  margin-top: 1rem;
+}
+
+.salutation-editor label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.salutation-row {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.salutation-row input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text);
+}
+
+.salutation-row .ghost-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.salutation-editor p {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
 .letter-form {
   margin-top: 1rem;
 }

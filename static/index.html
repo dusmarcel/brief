@@ -61,6 +61,16 @@
         <div class="selection-summary">
           <h2>Ausgewählte Empfänger*innen</h2>
           <div id="selected-members" class="selected-members"></div>
+          <div id="salutation-editor" class="salutation-editor" hidden>
+            <label for="recipient-salutation">
+              <span id="salutation-label">Anrede</span>
+            </label>
+            <div class="salutation-row">
+              <input id="recipient-salutation" name="salutation" autocomplete="off" />
+              <button id="reset-salutation" class="ghost-button" type="button">Zurücksetzen</button>
+            </div>
+            <p class="muted">Die Anrede gilt nur für die ausgewählte Person. Zum Ändern einer anderen Anrede oben die Person anklicken.</p>
+          </div>
         </div>
 
         <form id="letter-form" class="letter-form">

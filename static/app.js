@@ -16,6 +16,7 @@ const state = {
   results: [],
   selectedMembers: new Map(),
   previewMemberId: null,
+  salutations: new Map(),
   step: 1,
 };
 
@@ -38,6 +39,10 @@ const stepChip2 = document.getElementById("step-chip-2");
 const stepChip3 = document.getElementById("step-chip-3");
 
 const selectedMembersBox = document.getElementById("selected-members");
+const salutationEditor = document.getElementById("salutation-editor");
+const salutationLabel = document.getElementById("salutation-label");
+const salutationInput = document.getElementById("recipient-salutation");
+const resetSalutationButton = document.getElementById("reset-salutation");
 const letterForm = document.getElementById("letter-form");
 const senderNameInput = document.getElementById("sender-name");
 const senderNameExtraInput = document.getElementById("sender-name-extra");
@@ -183,8 +188,16 @@ function getLetterSubject() {
   return "Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG";
 }
 
+function getDefaultSalutation(member) {
+  const name = member?.fullName || member?.displayName || member?.name || "Bundestagsabgeordnete Person";
+  return member?.salutation || `Guten Tag, ${name},`;
+}
+
+function getSalutation(member) {
+  return state.salutations.get(member?.id) || getDefaultSalutation(member);
+}
+
 function getLetterBody(member, sender) {
-  const salutationName = member?.fullName || member?.displayName || member?.name || "Bundestagsabgeordnete Person";
   const closingLines = [sender.name || "Vorname Nachname"];
   if (sender.nameExtra) {
     closingLines.push(sender.nameExtra);
@@ -194,7 +207,7 @@ function getLetterBody(member, sender) {
   }
 
   return [
-    `Guten Tag, ${salutationName},`,
+    getSalutation(member),
     "",
     ...getLetterText(sender).split("\n"),
     "",
@@ -461,6 +474,17 @@ function renderSelectedMembers() {
     .join("");
 }
 
+function renderSalutationEditor() {
+  const member = getPreviewMember();
+  salutationEditor.hidden = !member;
+  if (!member) {
+    return;
+  }
+  salutationLabel.textContent = `Anrede für ${member.fullName || member.displayName || member.name}`;
+  salutationInput.value = getSalutation(member);
+  resetSalutationButton.disabled = !state.salutations.has(member.id);
+}
+
 function getPreviewMember() {
   return state.selectedMembers.get(state.previewMemberId) || [...state.selectedMembers.values()][0];
 }
@@ -480,23 +504,18 @@ function renderLetterPreview() {
 
   const recipientLines = recipient
     ? [
-        recipient.fullName || recipient.name,
+        recipient.addressName || recipient.fullName || recipient.name,
         ...(recipient.officeAddress && recipient.officeAddress !== "Nicht verfügbar"
           ? splitAddressLines(recipient.officeAddress)
           : splitAddressLines(`${recipient.constituency}, ${recipient.state || ""}`.replace(/,\s*$/, ""))),
       ]
     : ["Ausgewählte/r Bundestagsabgeordnete/r"];
 
-  const salutationName =
-    recipient?.fullName || recipient?.displayName || recipient?.name || "Bundestagsabgeordnete Person";
-
   letterPreview.innerHTML = `
     <div class="preview-meta">${escapeHtml(senderLines.join("\n"))}</div>
     <div class="preview-meta">${escapeHtml(recipientLines.join("\n"))}</div>
     <div class="preview-meta">Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG</div>
-    <p>${escapeHtml(
-      recipient ? `Guten Tag, ${salutationName},` : "Guten Tag,"
-    )}</p>
+    <p>${escapeHtml(recipient ? getSalutation(recipient) : "Guten Tag,")}</p>
     ${getLetterText(getSenderPayload())
       .split("\n\n")
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
@@ -520,6 +539,7 @@ function goToStep(stepNumber) {
   state.step = stepNumber;
   if (stepNumber === 2) {
     renderSelectedMembers();
+    renderSalutationEditor();
     renderLetterPreview();
     step2Status.textContent = "";
     downloadStatus.textContent = "";
@@ -666,6 +686,31 @@ selectedMembersBox.addEventListener("click", (event) => {
   }
   state.previewMemberId = pill.dataset.memberId;
   renderSelectedMembers();
+  renderSalutationEditor();
+  renderLetterPreview();
+});
+
+salutationInput.addEventListener("input", () => {
+  const member = getPreviewMember();
+  if (!member) {
+    return;
+  }
+  const value = salutationInput.value.trim();
+  if (value && value !== getDefaultSalutation(member)) {
+    state.salutations.set(member.id, value);
+  } else {
+    state.salutations.delete(member.id);
+  }
+  resetSalutationButton.disabled = !state.salutations.has(member.id);
+  renderLetterPreview();
+});
+
+resetSalutationButton.addEventListener("click", () => {
+  const member = getPreviewMember();
+  if (member) {
+    state.salutations.delete(member.id);
+  }
+  renderSalutationEditor();
   renderLetterPreview();
 });
 
@@ -722,6 +767,7 @@ async function downloadLetters() {
       body: JSON.stringify({
         memberIds: [...state.selectedMembers.keys()],
         sender: getSenderPayload(),
+        salutations: Object.fromEntries(state.salutations),
       }),
     });
 
