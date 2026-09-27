@@ -28,6 +28,14 @@ LETTER_BODY = (
 )
 
 
+SENDER_PROFESSION = {"m": "Als Rechtsanwalt", "w": "Als Rechtsanwältin"}
+
+
+def _letter_text(gender: str) -> str:
+    profession = SENDER_PROFESSION.get(gender)
+    return LETTER_BODY.replace("Als Rechtsanwält*in", profession) if profession else LETTER_BODY
+
+
 def _normalize_zip(code: str) -> str:
     return re.sub(r"\D", "", (code or "").strip())
 
@@ -429,6 +437,7 @@ class BundestagData:
         sender_extra = (sender.get("nameExtra") or "").strip()
         sender_address = (sender.get("address") or "").strip()
         sender_email = (sender.get("email") or "").strip()
+        sender_gender = (sender.get("gender") or "").strip()
 
         if not sender_name or not sender_address:
             raise ValueError("Bitte Name und Anschrift angeben.")
@@ -437,7 +446,9 @@ class BundestagData:
         with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for index, recipient in enumerate(recipients, start=1):
                 filename = self._build_letter_filename(index, recipient)
-                document = self._render_letter_rtf(recipient, sender_name, sender_extra, sender_address, sender_email)
+                document = self._render_letter_rtf(
+                    recipient, sender_name, sender_extra, sender_address, sender_email, sender_gender
+                )
                 zf.writestr(filename, document.encode("ascii"))
 
         archive.seek(0)
@@ -670,6 +681,7 @@ class BundestagData:
         sender_extra: str,
         sender_address: str,
         sender_email: str,
+        sender_gender: str = "",
     ) -> str:
         sender_lines = [sender_name]
         sender_lines.extend(_split_address_lines(sender_address))
@@ -704,7 +716,7 @@ class BundestagData:
             r"\par\par\par ",
             _rtf_escape(salutation),
             r"\par\par ",
-            _rtf_escape(LETTER_BODY),
+            _rtf_escape(_letter_text(sender_gender)),
             r"\par\par ",
             _rtf_escape("Mit freundlichen Grüßen"),
             r"\par\par ",

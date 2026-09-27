@@ -379,6 +379,7 @@ body {
 }
 
 .form-grid input,
+.form-grid select,
 .form-grid textarea {
   border: 1px solid #d5deeb;
   border-radius: 10px;

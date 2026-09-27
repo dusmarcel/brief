@@ -43,6 +43,7 @@ const senderNameInput = document.getElementById("sender-name");
 const senderNameExtraInput = document.getElementById("sender-name-extra");
 const senderAddressInput = document.getElementById("sender-address");
 const senderEmailInput = document.getElementById("sender-email");
+const senderGenderInput = document.getElementById("sender-gender");
 const letterPreview = document.getElementById("letter-preview");
 const backToStep1Button = document.getElementById("back-to-step-1");
 const backToStep2Button = document.getElementById("back-to-step-2");
@@ -164,7 +165,13 @@ function getSenderPayload() {
     nameExtra: senderNameExtraInput.value.trim(),
     address: senderAddressInput.value.trim(),
     email: senderEmailInput.value.trim(),
+    gender: senderGenderInput.value,
   };
+}
+
+function getLetterText(sender) {
+  const profession = { m: "Als Rechtsanwalt", w: "Als Rechtsanwältin" }[sender.gender];
+  return profession ? LETTER_BODY.replace("Als Rechtsanwält*in", profession) : LETTER_BODY;
 }
 
 function getLetterSubject() {
@@ -184,7 +191,7 @@ function getLetterBody(member, sender) {
   return [
     `Guten Tag, ${salutationName},`,
     "",
-    ...LETTER_BODY.split("\n"),
+    ...getLetterText(sender).split("\n"),
     "",
     "Mit freundlichen Grüßen",
     ...closingLines,
@@ -485,7 +492,8 @@ function renderLetterPreview() {
     <p>${escapeHtml(
       recipient ? `Guten Tag, ${salutationName},` : "Guten Tag,"
     )}</p>
-    ${LETTER_BODY.split("\n\n")
+    ${getLetterText(getSenderPayload())
+      .split("\n\n")
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
       .join("")}
     <p>Mit freundlichen Grüßen</p>
@@ -664,7 +672,7 @@ backToStep2Button.addEventListener("click", () => {
   goToStep(2);
 });
 
-[senderNameInput, senderNameExtraInput, senderAddressInput, senderEmailInput].forEach((field) => {
+[senderNameInput, senderNameExtraInput, senderAddressInput, senderEmailInput, senderGenderInput].forEach((field) => {
   field.addEventListener("input", () => {
     renderLetterPreview();
     if (state.step === 3) {
