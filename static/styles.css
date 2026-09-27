@@ -327,6 +327,29 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.selected-pill:hover {
+  border-color: var(--brand);
+}
+
+.selected-pill:focus-visible {
+  outline: 3px solid rgba(15, 110, 211, 0.35);
+  outline-offset: 2px;
+}
+
+.selected-pill.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.selected-pill.is-active span {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .selected-pill span {

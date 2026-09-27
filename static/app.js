@@ -15,6 +15,7 @@ const state = {
   currentTarget: null,
   results: [],
   selectedMembers: new Map(),
+  previewMemberId: null,
   step: 1,
 };
 
@@ -429,16 +430,27 @@ function renderSelectedMembers() {
     return;
   }
 
+  const previewMember = getPreviewMember();
   selectedMembersBox.innerHTML = selected
     .map(
       (member) => `
-        <div class="selected-pill">
+        <button
+          type="button"
+          class="selected-pill${member === previewMember ? " is-active" : ""}"
+          data-member-id="${escapeHtml(member.id)}"
+          aria-pressed="${member === previewMember}"
+          title="Vorschau des Schreibens an diese Person anzeigen"
+        >
           <strong>${escapeHtml(member.displayName || member.name)}</strong>
           <span>${escapeHtml(member.constituency || "")}</span>
-        </div>
+        </button>
       `
     )
     .join("");
+}
+
+function getPreviewMember() {
+  return state.selectedMembers.get(state.previewMemberId) || [...state.selectedMembers.values()][0];
 }
 
 function renderLetterPreview() {
@@ -446,7 +458,7 @@ function renderLetterPreview() {
   const senderExtra = senderNameExtraInput.value.trim();
   const senderAddress = senderAddressInput.value.trim() || "Straße Hausnummer\nPLZ Ort";
   const senderEmail = senderEmailInput.value.trim();
-  const firstRecipient = [...state.selectedMembers.values()][0];
+  const recipient = getPreviewMember();
 
   const senderLines = [senderName];
   senderLines.push(...senderAddress.split(/\r?\n/).filter(Boolean));
@@ -454,24 +466,24 @@ function renderLetterPreview() {
     senderLines.push(senderEmail);
   }
 
-  const recipientLines = firstRecipient
+  const recipientLines = recipient
     ? [
-        firstRecipient.fullName || firstRecipient.name,
-        ...(firstRecipient.officeAddress && firstRecipient.officeAddress !== "Nicht verfügbar"
-          ? splitAddressLines(firstRecipient.officeAddress)
-          : splitAddressLines(`${firstRecipient.constituency}, ${firstRecipient.state || ""}`.replace(/,\s*$/, ""))),
+        recipient.fullName || recipient.name,
+        ...(recipient.officeAddress && recipient.officeAddress !== "Nicht verfügbar"
+          ? splitAddressLines(recipient.officeAddress)
+          : splitAddressLines(`${recipient.constituency}, ${recipient.state || ""}`.replace(/,\s*$/, ""))),
       ]
     : ["Ausgewählte/r Bundestagsabgeordnete/r"];
 
   const salutationName =
-    firstRecipient?.fullName || firstRecipient?.displayName || firstRecipient?.name || "Bundestagsabgeordnete Person";
+    recipient?.fullName || recipient?.displayName || recipient?.name || "Bundestagsabgeordnete Person";
 
   letterPreview.innerHTML = `
     <div class="preview-meta">${escapeHtml(senderLines.join("\n"))}</div>
     <div class="preview-meta">${escapeHtml(recipientLines.join("\n"))}</div>
     <div class="preview-meta">Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG</div>
     <p>${escapeHtml(
-      firstRecipient ? `Guten Tag, ${salutationName},` : "Guten Tag,"
+      recipient ? `Guten Tag, ${salutationName},` : "Guten Tag,"
     )}</p>
     ${LETTER_BODY.split("\n\n")
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
@@ -632,6 +644,16 @@ toStep2Button.addEventListener("click", () => {
     return;
   }
   goToStep(2);
+});
+
+selectedMembersBox.addEventListener("click", (event) => {
+  const pill = event.target.closest(".selected-pill[data-member-id]");
+  if (!pill) {
+    return;
+  }
+  state.previewMemberId = pill.dataset.memberId;
+  renderSelectedMembers();
+  renderLetterPreview();
 });
 
 backToStep1Button.addEventListener("click", () => {
