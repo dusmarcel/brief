@@ -447,12 +447,34 @@ function openAllEmails() {
   }
 }
 
-async function copyText(text) {
+// Rich-text editors (e.g. GMX) drop the line breaks of pasted plain text, so the letter is also put
+// on the clipboard as HTML with explicit <br> line breaks; plain-text targets keep using text/plain.
+function textToHtml(text) {
+  return `<div>${escapeHtml(text).replace(/\n/g, "<br>")}</div>`;
+}
+
+async function copyText(text, html = "") {
   if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
+    if (html && window.ClipboardItem) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": new Blob([text], { type: "text/plain" }),
+          "text/html": new Blob([html], { type: "text/html" }),
+        }),
+      ]);
+    } else {
+      await navigator.clipboard.writeText(text);
+    }
     return;
   }
   // Fallback for plain-HTTP deployments, where the Clipboard API is unavailable.
+  const onCopy = (event) => {
+    event.clipboardData.setData("text/plain", text);
+    if (html) {
+      event.clipboardData.setData("text/html", html);
+    }
+    event.preventDefault();
+  };
   const textarea = document.createElement("textarea");
   textarea.value = text;
   textarea.setAttribute("readonly", "");
@@ -460,8 +482,14 @@ async function copyText(text) {
   textarea.style.opacity = "0";
   document.body.appendChild(textarea);
   textarea.select();
-  const copied = document.execCommand("copy");
-  textarea.remove();
+  document.addEventListener("copy", onCopy);
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } finally {
+    document.removeEventListener("copy", onCopy);
+    textarea.remove();
+  }
   if (!copied) {
     throw new Error("Kopieren nicht möglich");
   }
@@ -481,7 +509,8 @@ async function handleCopyClick(button) {
   const originalLabel = button.dataset.label || button.textContent;
   button.dataset.label = originalLabel;
   try {
-    await copyText(texts[button.dataset.copy] || "");
+    const text = texts[button.dataset.copy] || "";
+    await copyText(text, button.dataset.copy === "body" ? textToHtml(text) : "");
     button.textContent = "Kopiert ✓";
   } catch (error) {
     button.textContent = "Kopieren fehlgeschlagen";
