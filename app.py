@@ -30,11 +30,18 @@ LETTER_BODY = (
 
 
 SENDER_PROFESSION = {"m": "Als Rechtsanwalt", "w": "Als Rechtsanwältin"}
+RECIPIENT_ROLE = {"m": "als Abgeordneter", "w": "als Abgeordnete"}
 
 
-def _letter_text(gender: str) -> str:
-    profession = SENDER_PROFESSION.get(gender)
-    return LETTER_BODY.replace("Als Rechtsanwält*in", profession) if profession else LETTER_BODY
+def _letter_text(sender_gender: str, recipient_gender: str = "") -> str:
+    text = LETTER_BODY
+    profession = SENDER_PROFESSION.get(sender_gender)
+    if profession:
+        text = text.replace("Als Rechtsanwält*in", profession)
+    role = RECIPIENT_ROLE.get(recipient_gender)
+    if role:
+        text = text.replace("als Abgeordnete*r", role, 1)
+    return text
 
 
 def _salutation_title(academic_title: str, gender: str) -> str:
@@ -783,7 +790,7 @@ class BundestagData:
             r"\par\par\par ",
             _rtf_escape(salutation),
             r"\par\par ",
-            _rtf_escape(_letter_text(sender_gender)),
+            _rtf_escape(_letter_text(sender_gender, recipient.get("gender") or "")),
             r"\par\par ",
             _rtf_escape("Mit freundlichen Grüßen"),
             r"\par\par ",

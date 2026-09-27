@@ -180,8 +180,14 @@ function getProfession(gender) {
   return PROFESSION_BY_GENDER[gender] || PROFESSION_BY_GENDER[""];
 }
 
-function getLetterText(sender) {
-  return LETTER_BODY.replace("Als Rechtsanwält*in", `Als ${getProfession(sender.gender)}`);
+const RECIPIENT_ROLE_BY_GENDER = { m: "als Abgeordneter", w: "als Abgeordnete" };
+
+function getLetterText(sender, member) {
+  const role = RECIPIENT_ROLE_BY_GENDER[member?.gender] || "als Abgeordnete*r";
+  return LETTER_BODY.replace("als Abgeordnete*r", role).replace(
+    "Als Rechtsanwält*in",
+    `Als ${getProfession(sender.gender)}`
+  );
 }
 
 function getLetterSubject() {
@@ -209,7 +215,7 @@ function getLetterBody(member, sender) {
   return [
     getSalutation(member),
     "",
-    ...getLetterText(sender).split("\n"),
+    ...getLetterText(sender, member).split("\n"),
     "",
     "Mit freundlichen Grüßen",
     ...closingLines,
@@ -516,7 +522,7 @@ function renderLetterPreview() {
     <div class="preview-meta">${escapeHtml(recipientLines.join("\n"))}</div>
     <div class="preview-meta">Behördenunabhängige Asylverfahrensberatung gemäß § 12a AsylG</div>
     <p>${escapeHtml(recipient ? getSalutation(recipient) : "Guten Tag,")}</p>
-    ${getLetterText(getSenderPayload())
+    ${getLetterText(getSenderPayload(), recipient)
       .split("\n\n")
       .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
       .join("")}
