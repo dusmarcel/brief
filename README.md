@@ -93,11 +93,21 @@ In Schritt 2 lässt sich die Anrede für jede ausgewählte Person individuell ä
 
 Die E-Mails werden nicht vom Server verschickt, sondern von den Anwender*innen aus ihrem eigenen Postfach. So kommen sie als persönliche Schreiben bei den Abgeordneten an, landen im eigenen Gesendet-Ordner, und Antworten gehen direkt an die absendende Person.
 
-Für jede ausgewählte Person mit hinterlegter E-Mail-Adresse bietet Schritt 3:
+In Schritt 3 wählen die Anwender*innen einmal oben ihren E-Mail-Anbieter; jede Person in der Liste erhält dann eine passende Schaltfläche sowie „Adresse / Betreff / Text kopieren“. Die Auswahl wird im Browser gespeichert.
 
-- **Im Mailprogramm öffnen**: `mailto:`-Link für ein installiertes Mailprogramm
-- **Gmail**, **Outlook.com**, **Outlook (Microsoft 365)**: öffnet ein fertig ausgefülltes Mailfenster im jeweiligen Webmailer (Anmeldung vorausgesetzt)
-- **Adresse / Betreff / Text kopieren**: für alle anderen Mailprogramme und Webmailer
+| Auswahl | Schaltfläche |
+| --- | --- |
+| Mailprogramm auf diesem Gerät | `mailto:`-Link, öffnet eine fertig ausgefüllte E-Mail |
+| Gmail, Outlook.com, Outlook (Microsoft 365) | öffnet eine fertig ausgefüllte E-Mail im Webmailer (Anmeldung vorausgesetzt) |
+| GMX, WEB.DE, t-online | öffnet nur den Webmailer; Adresse, Betreff und Text werden über die Kopier-Schaltflächen eingefügt |
+| Anderer Anbieter | nur Kopier-Schaltflächen |
+
+Für das Mailprogramm sowie Gmail und Outlook gibt es zusätzlich eine Schaltfläche, die die E-Mails an alle ausgewählten Personen auf einmal öffnet:
+
+- **Mailprogramm:** Die E-Mails werden im Abstand von einer halben Sekunde nacheinander geöffnet. Je nach Browser muss jede einzeln bestätigt werden.
+- **Gmail / Outlook:** Jede E-Mail öffnet sich in einem eigenen Tab. Browser lassen pro Klick meist nur einen neuen Tab zu und blockieren die übrigen als Pop-ups. Die Seite erkennt das und bietet dann „Restliche … E-Mails öffnen“ an; nachdem Pop-ups für die Seite erlaubt wurden, öffnet ein weiterer Klick den Rest.
+
+GMX, WEB.DE und t-online bieten keinen öffentlich dokumentierten Link, der ein vorausgefülltes Mailfenster öffnet. Wer dort ein Postfach hat und die Mail trotzdem vorausgefüllt haben möchte, kann den Webmailer im Browser als Standard für E-Mail-Links einrichten (sofern der Anbieter das unterstützt) und „Mailprogramm auf diesem Gerät“ wählen. Weitere Anbieter lassen sich in `MAIL_PROVIDERS` in `static/app.js` ergänzen.
 
 Einige Mailprogramme (insbesondere Outlook unter Windows) kürzen sehr lange `mailto:`-Links; dann hilft „Text kopieren“. Für Personen ohne E-Mail-Adresse wird, soweit vorhanden, auf das Kontaktformular verwiesen.
 

@@ -16,6 +16,9 @@ const state = {
   results: [],
   selectedMembers: new Map(),
   previewMemberId: null,
+  emailProvider: "mailto",
+  // Recipients a bulk "open all" run could not open yet (pop-up blocker); the next click continues with them.
+  pendingBulkIds: null,
   salutations: new Map(),
   step: 1,
 };
@@ -54,6 +57,9 @@ const backToStep1Button = document.getElementById("back-to-step-1");
 const backToStep2Button = document.getElementById("back-to-step-2");
 const step2Status = document.getElementById("step-2-status");
 const emailMode = document.getElementById("email-mode");
+const emailProviderSelect = document.getElementById("email-provider");
+const emailProviderHint = document.getElementById("email-provider-hint");
+const openAllEmailsButton = document.getElementById("open-all-emails");
 const emailStatus = document.getElementById("email-status");
 const emailActions = document.getElementById("email-actions");
 const downloadStatus = document.getElementById("download-status");
@@ -226,11 +232,79 @@ function getLetterBody(member, sender) {
 // Set to "" to address the MdBs themselves.
 const MAIL_TEST_RECIPIENT = "marcel@aufentha.lt";
 
-const WEBMAIL_COMPOSE_URLS = {
-  gmail: "https://mail.google.com/mail/?view=cm&fs=1&",
-  outlookCom: "https://outlook.live.com/mail/0/deeplink/compose?",
-  outlook365: "https://outlook.office.com/mail/deeplink/compose?",
+// Providers with a compose deep link get a prefilled message; for the others (no public compose URL)
+// the button only opens the webmailer and address, subject and text are copied in by hand.
+const MAIL_PROVIDERS = {
+  mailto: {
+    label: "Mailprogramm auf diesem Gerät",
+    action: "Im Mailprogramm öffnen",
+    actionAll: "Alle E-Mails im Mailprogramm öffnen",
+    compose: (to, subject, body) => `mailto:${encodeURIComponent(to)}?${buildQuery({ subject, body })}`,
+    hint: "Öffnet eine fertig ausgefüllte E-Mail in deinem Mailprogramm. Manche Mailprogramme kürzen sehr lange Texte – nutze dann „Text kopieren“.",
+  },
+  gmail: {
+    label: "Gmail",
+    action: "In Gmail öffnen",
+    actionAll: "Alle E-Mails in Gmail öffnen",
+    compose: (to, subject, body) => `https://mail.google.com/mail/?view=cm&fs=1&${buildQuery({ to, su: subject, body })}`,
+    hint: "Öffnet eine fertig ausgefüllte E-Mail in Gmail. Du musst dort angemeldet sein.",
+  },
+  outlookCom: {
+    label: "Outlook.com (Hotmail, Live)",
+    action: "In Outlook öffnen",
+    actionAll: "Alle E-Mails in Outlook öffnen",
+    compose: (to, subject, body) =>
+      `https://outlook.live.com/mail/0/deeplink/compose?${buildQuery({ to, subject, body })}`,
+    hint: "Öffnet eine fertig ausgefüllte E-Mail in Outlook.com. Du musst dort angemeldet sein.",
+  },
+  outlook365: {
+    label: "Outlook (Microsoft 365, Arbeit oder Organisation)",
+    action: "In Outlook öffnen",
+    actionAll: "Alle E-Mails in Outlook öffnen",
+    compose: (to, subject, body) =>
+      `https://outlook.office.com/mail/deeplink/compose?${buildQuery({ to, subject, body })}`,
+    hint: "Öffnet eine fertig ausgefüllte E-Mail in Outlook im Web. Du musst dort angemeldet sein.",
+  },
+  gmx: {
+    label: "GMX",
+    action: "GMX öffnen",
+    url: "https://www.gmx.net/",
+  },
+  webde: {
+    label: "WEB.DE",
+    action: "WEB.DE öffnen",
+    url: "https://web.de/",
+  },
+  tonline: {
+    label: "t-online",
+    action: "t-online E-Mail öffnen",
+    url: "https://email.t-online.de/",
+  },
+  other: {
+    label: "Anderer Anbieter",
+    hint: "Kopiere Adresse, Betreff und Text und füge sie in eine neue E-Mail ein.",
+  },
 };
+const COPY_ONLY_HINT =
+  "Dieser Anbieter bietet keine Möglichkeit, eine E-Mail vorausgefüllt zu öffnen. Öffne den Webmailer, beginne eine neue E-Mail und füge Adresse, Betreff und Text über die Kopier-Schaltflächen ein.";
+const EMAIL_PROVIDER_STORAGE_KEY = "brief.emailProvider";
+
+function loadEmailProvider() {
+  try {
+    const stored = window.localStorage.getItem(EMAIL_PROVIDER_STORAGE_KEY);
+    return MAIL_PROVIDERS[stored] ? stored : "mailto";
+  } catch (error) {
+    return "mailto";
+  }
+}
+
+function saveEmailProvider(provider) {
+  try {
+    window.localStorage.setItem(EMAIL_PROVIDER_STORAGE_KEY, provider);
+  } catch (error) {
+    // Remembering the choice is only a convenience.
+  }
+}
 
 function getMailRecipient(member) {
   return MAIL_TEST_RECIPIENT || member?.email || "";
@@ -246,32 +320,45 @@ function buildQuery(params) {
     .join("&");
 }
 
-function buildMailLinks(member, sender) {
-  const to = getMailRecipient(member);
-  const subject = getMailSubject(member);
-  const body = getLetterBody(member, sender);
-  return {
-    mailto: `mailto:${encodeURIComponent(to)}?${buildQuery({ subject, body })}`,
-    gmail: WEBMAIL_COMPOSE_URLS.gmail + buildQuery({ to, su: subject, body }),
-    outlookCom: WEBMAIL_COMPOSE_URLS.outlookCom + buildQuery({ to, subject, body }),
-    outlook365: WEBMAIL_COMPOSE_URLS.outlook365 + buildQuery({ to, subject, body }),
-  };
+function buildProviderLink(member, sender) {
+  const provider = MAIL_PROVIDERS[state.emailProvider];
+  if (provider.compose) {
+    return provider.compose(getMailRecipient(member), getMailSubject(member), getLetterBody(member, sender));
+  }
+  return provider.url || "";
+}
+
+function renderProviderSelect() {
+  emailProviderSelect.innerHTML = Object.entries(MAIL_PROVIDERS)
+    .map(([key, provider]) => `<option value="${key}">${escapeHtml(provider.label)}</option>`)
+    .join("");
+  emailProviderSelect.value = state.emailProvider;
 }
 
 function renderEmailActions() {
   const sender = getSenderPayload();
   const selected = [...state.selectedMembers.values()];
 
+  const provider = MAIL_PROVIDERS[state.emailProvider];
+  emailProviderHint.textContent = provider.hint || COPY_ONLY_HINT;
+
+  openAllEmailsButton.hidden = !provider.actionAll;
+  openAllEmailsButton.textContent = state.pendingBulkIds
+    ? bulkRemainderLabel(state.pendingBulkIds.length)
+    : provider.actionAll || "";
+
   emailMode.hidden = !MAIL_TEST_RECIPIENT;
   emailMode.textContent = `Testbetrieb: Alle E-Mails sind derzeit an ${MAIL_TEST_RECIPIENT} adressiert, nicht an die Abgeordneten.`;
 
   if (!selected.length) {
+    openAllEmailsButton.disabled = true;
     emailStatus.textContent = "";
     emailActions.innerHTML = "<p class=\"muted\">Noch keine Empfänger*innen ausgewählt.</p>";
     return;
   }
 
   const emailableCount = selected.filter((member) => member.email).length;
+  openAllEmailsButton.disabled = emailableCount === 0;
   emailStatus.textContent = emailableCount
     ? `Für ${emailableCount} ${emailableCount === 1 ? "Person" : "Personen"} ist eine E-Mail-Adresse hinterlegt.`
     : "Für die Auswahl sind aktuell keine E-Mail-Adressen vorhanden.";
@@ -281,18 +368,19 @@ function renderEmailActions() {
       const label = member.fullName || member.displayName || member.name || "Unbekannte Person";
       const factionLabel = member.faction ? `${label} (${member.faction})` : label;
       if (member.email) {
-        const links = buildMailLinks(member, sender);
+        const link = buildProviderLink(member, sender);
         const id = escapeHtml(member.id);
         return `
           <div class="email-action">
             <strong>${escapeHtml(factionLabel)}</strong>
             <p>${escapeHtml(getMailRecipient(member))}</p>
-            <div class="email-links">
-              <a class="action-link" href="${escapeHtml(links.mailto)}">Im Mailprogramm öffnen</a>
-              <a class="action-link is-secondary" href="${escapeHtml(links.gmail)}" target="_blank" rel="noopener noreferrer">Gmail</a>
-              <a class="action-link is-secondary" href="${escapeHtml(links.outlookCom)}" target="_blank" rel="noopener noreferrer">Outlook.com</a>
-              <a class="action-link is-secondary" href="${escapeHtml(links.outlook365)}" target="_blank" rel="noopener noreferrer">Outlook (Microsoft 365)</a>
-            </div>
+            ${
+              link
+                ? `<a class="action-link" href="${escapeHtml(link)}"${
+                    state.emailProvider === "mailto" ? "" : ' target="_blank" rel="noopener noreferrer"'
+                  }>${escapeHtml(provider.action)}</a>`
+                : ""
+            }
             <div class="copy-buttons">
               <button type="button" class="copy-button" data-copy="address" data-member-id="${id}">Adresse kopieren</button>
               <button type="button" class="copy-button" data-copy="subject" data-member-id="${id}">Betreff kopieren</button>
@@ -318,6 +406,55 @@ function renderEmailActions() {
       `;
     })
     .join("");
+}
+
+function bulkRemainderLabel(count) {
+  return count === 1 ? "Restliche E-Mail öffnen" : `Restliche ${count} E-Mails öffnen`;
+}
+
+function openAllEmails() {
+  const sender = getSenderPayload();
+  const emailable = [...state.selectedMembers.values()].filter((member) => member.email);
+  const members = state.pendingBulkIds
+    ? emailable.filter((member) => state.pendingBulkIds.includes(member.id))
+    : emailable;
+  state.pendingBulkIds = null;
+
+  if (!members.length) {
+    renderEmailActions();
+    return;
+  }
+
+  if (state.emailProvider === "mailto") {
+    emailStatus.textContent = `Es werden jetzt ${members.length} einzelne E-Mails im Mailprogramm geöffnet. Je nach Browser musst du jede einzeln bestätigen.`;
+    members.forEach((member, index) => {
+      window.setTimeout(() => {
+        window.location.href = buildProviderLink(member, sender);
+      }, index * 500);
+    });
+    return;
+  }
+
+  // Webmailers open in new tabs. Browsers usually allow only one new window per click and block the
+  // rest, so stop at the first blocked tab and let the next click continue from there.
+  let openedCount = 0;
+  for (const member of members) {
+    const tab = window.open(buildProviderLink(member, sender), "_blank");
+    if (!tab) {
+      break;
+    }
+    tab.opener = null;
+    openedCount += 1;
+  }
+
+  const remaining = members.slice(openedCount);
+  state.pendingBulkIds = remaining.length ? remaining.map((member) => member.id) : null;
+  renderEmailActions();
+  if (remaining.length) {
+    emailStatus.textContent = `${openedCount} von ${members.length} E-Mails geöffnet. Dein Browser hat weitere Tabs blockiert. Erlaube Pop-ups für diese Seite (meist über ein Symbol in der Adressleiste) und klicke dann auf „${bulkRemainderLabel(remaining.length)}“.`;
+  } else {
+    emailStatus.textContent = `${openedCount} E-Mail${openedCount === 1 ? "" : "s"} in neuen Tabs geöffnet.`;
+  }
 }
 
 async function copyText(text) {
@@ -610,6 +747,7 @@ function goToStep(stepNumber) {
   if (stepNumber === 3) {
     renderSelectedMembers();
     renderLetterPreview();
+    state.pendingBulkIds = null;
     renderEmailActions();
     step2Status.textContent = "";
   }
@@ -867,6 +1005,15 @@ async function downloadLetters() {
 }
 
 downloadLettersButton.addEventListener("click", downloadLetters);
+openAllEmailsButton.addEventListener("click", openAllEmails);
+
+emailProviderSelect.addEventListener("change", () => {
+  state.emailProvider = emailProviderSelect.value;
+  state.pendingBulkIds = null;
+  saveEmailProvider(state.emailProvider);
+  renderEmailActions();
+});
+
 emailActions.addEventListener("click", (event) => {
   const button = event.target.closest(".copy-button[data-copy]");
   if (button) {
@@ -874,6 +1021,8 @@ emailActions.addEventListener("click", (event) => {
   }
 });
 
+state.emailProvider = loadEmailProvider();
+renderProviderSelect();
 syncStepUi();
 updateSelectionInfo();
 renderLetterPreview();

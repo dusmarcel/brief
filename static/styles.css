@@ -463,26 +463,56 @@ body {
   font-size: 0.92rem;
 }
 
-.email-links,
+.provider-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.provider-select select {
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font: inherit;
+  font-weight: 400;
+  background: #fff;
+  color: var(--text);
+}
+
+.provider-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+}
+
+#open-all-emails {
+  margin-top: 0.75rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#open-all-emails:hover:not(:disabled),
+#open-all-emails:focus-visible {
+  background: var(--brand-strong);
+}
+
+#open-all-emails:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .copy-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.copy-buttons {
   margin-top: 0.5rem;
-}
-
-.action-link.is-secondary {
-  background: #eef5ff;
-  border: 1px solid #d8e5f7;
-  color: var(--text);
-}
-
-.action-link.is-secondary:hover,
-.action-link.is-secondary:focus-visible {
-  background: #dfeafc;
 }
 
 .copy-button {

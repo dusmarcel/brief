@@ -134,14 +134,16 @@
           <section class="letter-preview-block">
             <h2>E-Mails schreiben</h2>
             <p class="muted">
-              Für jede ausgewählte Person kannst du eine fertig ausgefüllte E-Mail in deinem Mailprogramm, in Gmail
-              oder in Outlook im Web öffnen und aus deinem eigenen Postfach absenden. Alternativ kannst du Adresse,
-              Betreff und Text einzeln kopieren und in ein beliebiges Mailprogramm einfügen.
-            </p>
-            <p class="muted">
-              Falls der Text im Mailprogramm unvollständig ankommt, nutze bitte „Text kopieren“.
+              Für jede ausgewählte Person kannst du eine eigene E-Mail aus deinem Postfach absenden. Wähle dazu
+              zunächst aus, womit du deine E-Mails schreibst.
             </p>
             <p id="email-mode" class="email-mode" hidden></p>
+            <label class="provider-select" for="email-provider">
+              <span>Dein E-Mail-Anbieter</span>
+              <select id="email-provider"></select>
+            </label>
+            <p id="email-provider-hint" class="muted provider-hint"></p>
+            <button id="open-all-emails" type="button" hidden></button>
             <section id="email-status" class="status" aria-live="polite"></section>
             <div id="email-actions" class="email-actions"></div>
           </section>
