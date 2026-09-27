@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-"Brief" is a single-page web app for looking up German Bundestag representatives (MdBs) by postal code (PLZ). It combines static election district data with live scraping of bundestag.de member profiles for current contact info.
+"Brief" is a single-page web app for a letter/e-mail campaign to German Bundestag representatives (MdBs). Users look up MdBs by place, county, state or postal code (PLZ), select recipients, fill in their sender details, and then download personalized RTF letters (ZIP) or open prefilled e-mails to send from their own mailbox. It combines static election district data with live scraping of bundestag.de member profiles for contact info. The UI and all letter text are German.
 
 ## Running the Application
 
@@ -24,20 +24,26 @@ docker compose up
 
 Uses the `dev` stage of the `Dockerfile`, which installs `watchdog` and runs `watchmedo auto-restart`. File changes to `*.py`, `*.html`, `*.js`, `*.css`, and `*.json` trigger an automatic server restart. The project directory is mounted as a volume, so edits on the host are reflected immediately.
 
-The production image uses the `runtime` stage:
+The production image uses the `prod` stage (non-root user, no hot reload), also available via `docker compose -f docker-compose.prod.yml up --build -d`:
 
 ```bash
-docker build --target runtime -t brief .
+docker build --target prod -t brief .
 docker run -p 8000:8000 brief
 ```
 
 ## Architecture
 
-**Backend** (`app.py`): Python `ThreadingHTTPServer` with two routes:
-- `GET /` → serves `static/index.html`
-- `GET /api/search?zip=XXXXX` → returns JSON array of matching representatives
+**Backend** (`app.py`): Python `ThreadingHTTPServer` with these routes:
+- `GET /` and other paths → static files from `static/`
+- `GET /api/suggest?q=…` → autocomplete suggestions (places, counties, states, PLZ)
+- `GET /api/search?q=…|target=…|zip=…` → the resolved search target plus matching representatives (or suggestions if ambiguous)
+- `POST /api/letters` → ZIP of RTF letters for `{memberIds, sender, salutations}`
 
-**Frontend** (`static/`): Vanilla JS/HTML/CSS — no frameworks, no bundler.
+**Frontend** (`static/`): Vanilla JS/HTML/CSS — no frameworks, no bundler. Three steps: search/select recipients → sender details, per-recipient salutation and letter preview → ZIP download or e-mail links. The letter text exists twice, as `LETTER_BODY` in `app.py` (RTF letters) and in `static/app.js` (preview and e-mails); keep both in sync.
+
+**Salutation and address**: each search result carries `gender`, `academicTitle`, `addressName` ("Herrn Prof. Dr. …") and a default `salutation` computed in `_default_salutation()` (highest degree only, "Professor/Professorin" spelled out, noble rank replaces "Herr/Frau", non-binary/unknown → "Guten Tag, Vorname Nachname,"). The first sentence's "als Abgeordnete*r" is gendered by the recipient, "Als Rechtsanwält*in" by the sender. Users can override the salutation per recipient; overrides are sent as `salutations` to `/api/letters`.
+
+**E-mail**: there is deliberately no server-side sending (decided against SMTP: From-address/SPF issues, sender authenticity, spam risk). Step 3 offers `mailto:`, Gmail/Outlook.com/Microsoft 365 compose deep links, and copy buttons. During development `MAIL_TEST_RECIPIENT` in `static/app.js` redirects all e-mails to a test address; do not clear it until asked.
 
 **Data flow**:
 1. `data/wks.json` (826 KB, pre-processed) is loaded into memory at startup inside `BundestagData`

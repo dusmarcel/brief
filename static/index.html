@@ -132,12 +132,16 @@
           </section>
 
           <section class="letter-preview-block">
-            <h2>E-Mails vorbereiten</h2>
+            <h2>E-Mails schreiben</h2>
             <p class="muted">
-              Für jede ausgewählte Person wird eine eigene E-Mail vorbereitet. Je nach Mailprogramm werden
-              Absenderangaben aus dem Formular als `From` und/oder `Reply-To` übernommen.
+              Für jede ausgewählte Person kannst du eine fertig ausgefüllte E-Mail in deinem Mailprogramm, in Gmail
+              oder in Outlook im Web öffnen und aus deinem eigenen Postfach absenden. Alternativ kannst du Adresse,
+              Betreff und Text einzeln kopieren und in ein beliebiges Mailprogramm einfügen.
             </p>
-            <button id="prepare-all-emails" type="button">E-Mails für alle vorbereiten</button>
+            <p class="muted">
+              Falls der Text im Mailprogramm unvollständig ankommt, nutze bitte „Text kopieren“.
+            </p>
+            <p id="email-mode" class="email-mode" hidden></p>
             <section id="email-status" class="status" aria-live="polite"></section>
             <div id="email-actions" class="email-actions"></div>
           </section>

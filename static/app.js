@@ -53,7 +53,7 @@ const letterPreview = document.getElementById("letter-preview");
 const backToStep1Button = document.getElementById("back-to-step-1");
 const backToStep2Button = document.getElementById("back-to-step-2");
 const step2Status = document.getElementById("step-2-status");
-const prepareAllEmailsButton = document.getElementById("prepare-all-emails");
+const emailMode = document.getElementById("email-mode");
 const emailStatus = document.getElementById("email-status");
 const emailActions = document.getElementById("email-actions");
 const downloadStatus = document.getElementById("download-status");
@@ -222,49 +222,82 @@ function getLetterBody(member, sender) {
   ].join("\n");
 }
 
-function buildMailtoHref(member, sender) {
-  if (!member?.email) {
-    return "";
-  }
-  const params = new URLSearchParams({
-    subject: getLetterSubject(),
-    body: getLetterBody(member, sender),
-  });
-  if (sender.email) {
-    params.set("reply-to", sender.email);
-    params.set("from", sender.email);
-  }
-  return `mailto:${encodeURIComponent(member.email)}?${params.toString().replaceAll("+", "%20")}`;
+// Development phase: every e-mail is addressed to this test address instead of the MdB.
+// Set to "" to address the MdBs themselves.
+const MAIL_TEST_RECIPIENT = "marcel@aufentha.lt";
+
+const WEBMAIL_COMPOSE_URLS = {
+  gmail: "https://mail.google.com/mail/?view=cm&fs=1&",
+  outlookCom: "https://outlook.live.com/mail/0/deeplink/compose?",
+  outlook365: "https://outlook.office.com/mail/deeplink/compose?",
+};
+
+function getMailRecipient(member) {
+  return MAIL_TEST_RECIPIENT || member?.email || "";
+}
+
+function getMailSubject(member) {
+  return MAIL_TEST_RECIPIENT ? `[Test, eigentlich an ${member.email}] ${getLetterSubject()}` : getLetterSubject();
+}
+
+function buildQuery(params) {
+  return Object.entries(params)
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+    .join("&");
+}
+
+function buildMailLinks(member, sender) {
+  const to = getMailRecipient(member);
+  const subject = getMailSubject(member);
+  const body = getLetterBody(member, sender);
+  return {
+    mailto: `mailto:${encodeURIComponent(to)}?${buildQuery({ subject, body })}`,
+    gmail: WEBMAIL_COMPOSE_URLS.gmail + buildQuery({ to, su: subject, body }),
+    outlookCom: WEBMAIL_COMPOSE_URLS.outlookCom + buildQuery({ to, subject, body }),
+    outlook365: WEBMAIL_COMPOSE_URLS.outlook365 + buildQuery({ to, subject, body }),
+  };
 }
 
 function renderEmailActions() {
   const sender = getSenderPayload();
   const selected = [...state.selectedMembers.values()];
 
+  emailMode.hidden = !MAIL_TEST_RECIPIENT;
+  emailMode.textContent = `Testbetrieb: Alle E-Mails sind derzeit an ${MAIL_TEST_RECIPIENT} adressiert, nicht an die Abgeordneten.`;
+
   if (!selected.length) {
-    prepareAllEmailsButton.disabled = true;
     emailStatus.textContent = "";
     emailActions.innerHTML = "<p class=\"muted\">Noch keine Empfänger*innen ausgewählt.</p>";
     return;
   }
 
   const emailableCount = selected.filter((member) => member.email).length;
-  prepareAllEmailsButton.disabled = emailableCount === 0;
   emailStatus.textContent = emailableCount
-    ? `${emailableCount} E-Mail${emailableCount === 1 ? "" : "s"} können vorbereitet werden.`
+    ? `Für ${emailableCount} ${emailableCount === 1 ? "Person" : "Personen"} ist eine E-Mail-Adresse hinterlegt.`
     : "Für die Auswahl sind aktuell keine E-Mail-Adressen vorhanden.";
 
   emailActions.innerHTML = selected
     .map((member) => {
       const label = member.fullName || member.displayName || member.name || "Unbekannte Person";
       const factionLabel = member.faction ? `${label} (${member.faction})` : label;
-      const email = member.email;
-      if (email) {
+      if (member.email) {
+        const links = buildMailLinks(member, sender);
+        const id = escapeHtml(member.id);
         return `
           <div class="email-action">
             <strong>${escapeHtml(factionLabel)}</strong>
-            <p>${escapeHtml(email)}</p>
-            <a class="action-link" href="${escapeHtml(buildMailtoHref(member, sender))}">E-Mail vorbereiten</a>
+            <p>${escapeHtml(getMailRecipient(member))}</p>
+            <div class="email-links">
+              <a class="action-link" href="${escapeHtml(links.mailto)}">Im Mailprogramm öffnen</a>
+              <a class="action-link is-secondary" href="${escapeHtml(links.gmail)}" target="_blank" rel="noopener noreferrer">Gmail</a>
+              <a class="action-link is-secondary" href="${escapeHtml(links.outlookCom)}" target="_blank" rel="noopener noreferrer">Outlook.com</a>
+              <a class="action-link is-secondary" href="${escapeHtml(links.outlook365)}" target="_blank" rel="noopener noreferrer">Outlook (Microsoft 365)</a>
+            </div>
+            <div class="copy-buttons">
+              <button type="button" class="copy-button" data-copy="address" data-member-id="${id}">Adresse kopieren</button>
+              <button type="button" class="copy-button" data-copy="subject" data-member-id="${id}">Betreff kopieren</button>
+              <button type="button" class="copy-button" data-copy="body" data-member-id="${id}">Text kopieren</button>
+            </div>
           </div>
         `;
       }
@@ -287,25 +320,49 @@ function renderEmailActions() {
     .join("");
 }
 
-function prepareAllEmails() {
-  const sender = getSenderPayload();
-  const selected = [...state.selectedMembers.values()];
-  const links = selected
-    .map((member) => buildMailtoHref(member, sender))
-    .filter(Boolean);
-
-  if (!links.length) {
-    emailStatus.textContent = "Für die Auswahl sind aktuell keine E-Mail-Adressen vorhanden.";
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
     return;
   }
+  // Fallback for plain-HTTP deployments, where the Clipboard API is unavailable.
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) {
+    throw new Error("Kopieren nicht möglich");
+  }
+}
 
-  emailStatus.textContent = `Es werden jetzt ${links.length} einzelne E-Mail-Entwürfe vorbereitet. Je nach Browser musst du weitere Fenster bestätigen.`;
-
-  links.forEach((href, index) => {
-    window.setTimeout(() => {
-      window.location.href = href;
-    }, index * 500);
-  });
+async function handleCopyClick(button) {
+  const member = state.selectedMembers.get(button.dataset.memberId);
+  if (!member) {
+    return;
+  }
+  const sender = getSenderPayload();
+  const texts = {
+    address: getMailRecipient(member),
+    subject: getMailSubject(member),
+    body: getLetterBody(member, sender),
+  };
+  const originalLabel = button.dataset.label || button.textContent;
+  button.dataset.label = originalLabel;
+  try {
+    await copyText(texts[button.dataset.copy] || "");
+    button.textContent = "Kopiert ✓";
+  } catch (error) {
+    button.textContent = "Kopieren fehlgeschlagen";
+    console.error(error);
+  }
+  window.setTimeout(() => {
+    button.textContent = originalLabel;
+  }, 2000);
 }
 
 function clearSuggestions() {
@@ -810,7 +867,12 @@ async function downloadLetters() {
 }
 
 downloadLettersButton.addEventListener("click", downloadLetters);
-prepareAllEmailsButton.addEventListener("click", prepareAllEmails);
+emailActions.addEventListener("click", (event) => {
+  const button = event.target.closest(".copy-button[data-copy]");
+  if (button) {
+    handleCopyClick(button);
+  }
+});
 
 syncStepUi();
 updateSelectionInfo();

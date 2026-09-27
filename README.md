@@ -1,11 +1,11 @@
 # Briefaktion der Rechtsberater*innenkonferenz
 
-Diese Webapp unterstützt eine Brief- und E-Mail-Aktion an Bundestagsabgeordnete zum Erhalt der unabhängigen Asylverfahrensberatung. Sie sucht Abgeordnete nach Ort, Landkreis, Bundesland oder Postleitzahl, erlaubt die Auswahl passender Empfänger*innen und erzeugt anschließend Schreiben als ZIP-Datei oder einzelne E-Mail-Entwürfe.
+Diese Webapp unterstützt eine Brief- und E-Mail-Aktion an Bundestagsabgeordnete zum Erhalt der unabhängigen Asylverfahrensberatung. Sie sucht Abgeordnete nach Ort, Landkreis, Bundesland oder Postleitzahl, erlaubt die Auswahl passender Empfänger*innen und erzeugt anschließend Schreiben als ZIP-Datei oder fertig ausgefüllte E-Mails, die die Anwender*innen aus ihrem eigenen Postfach versenden.
 
 ## Schnellstart
 
 ```bash
-cd C:\Users\marce\projects\brief
+cd brief
 python app.py
 ```
 
@@ -61,12 +61,47 @@ Die Anwendung führt durch drei Schritte:
    - Alle nicht zur AfD gehörenden Abgeordneten werden standardmäßig vorausgewählt
 2. Absenderangaben ergänzen
    - Name und Anschrift sind Pflichtfelder
-   - E-Mail-Adresse ist optional
-   - Vorschau des Schreibens mit Anschrift, Betreff und Anrede
+   - E-Mail-Adresse und Geschlecht sind optional; das Geschlecht bestimmt „Als Rechtsanwalt/Rechtsanwältin/Rechtsanwält*in“ im Text und den vorgeschlagenen Zusatz zum Namen
+   - Vorschau des Schreibens mit Anschrift, Betreff und Anrede; per Klick auf eine ausgewählte Person wechselt die Vorschau zu deren Schreiben
+   - Die Anrede lässt sich für jede Person einzeln anpassen (siehe [Anrede und Anschrift](#anrede-und-anschrift))
 3. Versandart wählen
-   - ZIP-Archiv mit personalisierten Schreiben herunterladen
-   - Für jede ausgewählte Person einen eigenen E-Mail-Entwurf erzeugen
-   - Optional alle verfügbaren E-Mail-Entwürfe gesammelt nacheinander vorbereiten
+   - ZIP-Archiv mit personalisierten Schreiben (RTF) herunterladen, zum Ausdrucken und postalischen Versand
+   - E-Mails schreiben (siehe [E-Mail-Versand](#e-mail-versand))
+
+## Anrede und Anschrift
+
+Anrede, Anschrift und der erste Satz richten sich nach dem Geschlecht der Abgeordneten (`data/genders.json`):
+
+| Geschlecht | Anschrift | Anrede | Erster Satz |
+| --- | --- | --- | --- |
+| männlich | Herrn Dr. Max Muster | Sehr geehrter Herr Dr. Muster, | als Abgeordneter meines Wahlkreises … |
+| weiblich | Frau Dr. Erika Muster | Sehr geehrte Frau Dr. Muster, | als Abgeordnete meines Wahlkreises … |
+| divers / unbekannt | Dr. Kim Muster | Guten Tag, Dr. Kim Muster, | als Abgeordnete*r meines Wahlkreises … |
+
+Dabei gelten die in Briefen üblichen Regeln:
+
+- In der Anschrift stehen alle akademischen Grade wie im Namen angegeben (z. B. „Prof. Dr.-Ing. habil.“, „Dr. med.“).
+- In der Anrede wird nur der höchste Grad genannt: „Dr.“ ohne Fachzusatz, bei Professor*innen „Herr Professor …“ bzw. „Frau Professorin …“ (ausgeschrieben, ohne „Dr.“).
+- Namenszusätze wie „von“, „van“, „de“ oder „dos“ gehören zum Nachnamen („Sehr geehrte Frau von Storch,“).
+- Adelstitel ersetzen ohne akademischen Grad „Herr“/„Frau“ („Sehr geehrter Freiherr von Stetten,“); mit akademischem Grad heißt es „Sehr geehrter Herr Dr. von …“.
+
+Die Geschlechtsangaben stammen aus den Stammdaten des Bundestags und werden mit `python scripts/collect_genders.py` erzeugt. Für Personen, die dort nicht (eindeutig) zu finden sind, sind die Einträge von Hand ergänzt und mit `"manual": true` gekennzeichnet; sie bleiben beim erneuten Erzeugen erhalten.
+
+In Schritt 2 lässt sich die Anrede für jede ausgewählte Person individuell ändern. Die geänderte Anrede gilt für Vorschau, E-Mails und ZIP-Download; „Zurücksetzen“ stellt den Vorschlag wieder her.
+
+## E-Mail-Versand
+
+Die E-Mails werden nicht vom Server verschickt, sondern von den Anwender*innen aus ihrem eigenen Postfach. So kommen sie als persönliche Schreiben bei den Abgeordneten an, landen im eigenen Gesendet-Ordner, und Antworten gehen direkt an die absendende Person.
+
+Für jede ausgewählte Person mit hinterlegter E-Mail-Adresse bietet Schritt 3:
+
+- **Im Mailprogramm öffnen**: `mailto:`-Link für ein installiertes Mailprogramm
+- **Gmail**, **Outlook.com**, **Outlook (Microsoft 365)**: öffnet ein fertig ausgefülltes Mailfenster im jeweiligen Webmailer (Anmeldung vorausgesetzt)
+- **Adresse / Betreff / Text kopieren**: für alle anderen Mailprogramme und Webmailer
+
+Einige Mailprogramme (insbesondere Outlook unter Windows) kürzen sehr lange `mailto:`-Links; dann hilft „Text kopieren“. Für Personen ohne E-Mail-Adresse wird, soweit vorhanden, auf das Kontaktformular verwiesen.
+
+**Testbetrieb:** Während der Entwicklung sind alle E-Mails an eine Testadresse adressiert statt an die Abgeordneten. Die eigentliche Adresse steht im Betreff (`[Test, eigentlich an …]`), und Schritt 3 zeigt einen Hinweis. Die Testadresse ist die Konstante `MAIL_TEST_RECIPIENT` in `static/app.js`; ist sie leer (`""`), gehen die E-Mails an die Abgeordneten.
 
 ## E-Mail-Adressen
 
@@ -82,6 +117,7 @@ Bei Kontaktangaben werden zuerst die auf der Profilseite veröffentlichten Daten
 
 - `data/wks.json` (Wahlkreise, PLZ-Zuordnung, Basis-Informationen zu Abgeordneten)
 - Zusätzliche Profilinformationen werden zur Laufzeit direkt von den Bundestag-Profilseiten geholt.
+- `data/emails.json` (E-Mail-Adressen, siehe oben) und `data/genders.json` (Geschlecht für Anrede und Anschrift, siehe oben)
 - `data/stammdaten/MDB_STAMMDATEN.XML` und `data/MdB-Stammdaten.zip` (amtlicher Open-Data-Export des Bundestags; Stand 29.04.2026)
 
 Quelle: [Open Data des Deutschen Bundestags](https://www.bundestag.de/services/opendata).
