@@ -169,9 +169,14 @@ function getSenderPayload() {
   };
 }
 
+const PROFESSION_BY_GENDER = { "": "Rechtsanwält*in", m: "Rechtsanwalt", w: "Rechtsanwältin" };
+
+function getProfession(gender) {
+  return PROFESSION_BY_GENDER[gender] || PROFESSION_BY_GENDER[""];
+}
+
 function getLetterText(sender) {
-  const profession = { m: "Als Rechtsanwalt", w: "Als Rechtsanwältin" }[sender.gender];
-  return profession ? LETTER_BODY.replace("Als Rechtsanwält*in", profession) : LETTER_BODY;
+  return LETTER_BODY.replace("Als Rechtsanwält*in", `Als ${getProfession(sender.gender)}`);
 }
 
 function getLetterSubject() {
@@ -672,7 +677,18 @@ backToStep2Button.addEventListener("click", () => {
   goToStep(2);
 });
 
-[senderNameInput, senderNameExtraInput, senderAddressInput, senderEmailInput, senderGenderInput].forEach((field) => {
+senderGenderInput.addEventListener("change", () => {
+  // Only replace the name suffix while it still holds one of the defaults, so custom text is kept.
+  if (Object.values(PROFESSION_BY_GENDER).includes(senderNameExtraInput.value.trim())) {
+    senderNameExtraInput.value = getProfession(senderGenderInput.value);
+  }
+  renderLetterPreview();
+  if (state.step === 3) {
+    renderEmailActions();
+  }
+});
+
+[senderNameInput, senderNameExtraInput, senderAddressInput, senderEmailInput].forEach((field) => {
   field.addEventListener("input", () => {
     renderLetterPreview();
     if (state.step === 3) {
