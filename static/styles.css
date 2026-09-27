@@ -489,6 +489,10 @@ body {
 
 #open-all-emails {
   margin-top: 0.75rem;
+}
+
+#open-all-emails,
+#download-letters {
   border: 0;
   border-radius: 10px;
   background: var(--brand);
@@ -499,7 +503,9 @@ body {
 }
 
 #open-all-emails:hover:not(:disabled),
-#open-all-emails:focus-visible {
+#open-all-emails:focus-visible,
+#download-letters:hover,
+#download-letters:focus-visible {
   background: var(--brand-strong);
 }
 

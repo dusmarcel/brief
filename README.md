@@ -74,9 +74,9 @@ Anrede, Anschrift und der erste Satz richten sich nach dem Geschlecht der Abgeor
 
 | Geschlecht | Anschrift | Anrede | Erster Satz |
 | --- | --- | --- | --- |
-| männlich | Herrn Dr. Max Muster | Sehr geehrter Herr Dr. Muster, | als Abgeordneter meines Wahlkreises … |
-| weiblich | Frau Dr. Erika Muster | Sehr geehrte Frau Dr. Muster, | als Abgeordnete meines Wahlkreises … |
-| divers / unbekannt | Dr. Kim Muster | Guten Tag, Dr. Kim Muster, | als Abgeordnete*r meines Wahlkreises … |
+| männlich | Herrn Dr. Max Muster | Sehr geehrter Herr Dr. Muster, | ich möchte Sie als Abgeordneter meines Wahlkreises … |
+| weiblich | Frau Dr. Erika Muster | Sehr geehrte Frau Dr. Muster, | ich möchte Sie als Abgeordnete meines Wahlkreises … |
+| divers / unbekannt | Dr. Kim Muster | Guten Tag, Dr. Kim Muster, | ich möchte Sie als Abgeordnete*r meines Wahlkreises … |
 
 Dabei gelten die in Briefen üblichen Regeln:
 
