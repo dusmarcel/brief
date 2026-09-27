@@ -1,4 +1,4 @@
-const LETTER_BODY = `ich möchte Sie als Abgeordnete*r meines Wahlkreises dringend bitten, sich in den laufenden Haushaltsverhandlungen für die ausreichende Weiterfinanzierung der Asylverfahrensberatung einzusetzen.
+const LETTER_BODY = `ich möchte Sie, da Sie mich als Abgeordnete*r vertreten, dringend bitten, sich in den laufenden Haushaltsverhandlungen für die ausreichende Weiterfinanzierung der Asylverfahrensberatung einzusetzen.
 
 Die Asylverfahrensberatung ist ein notwendiges Instrument, um faire und sachlich richtige Asylverfahren zu gewährleisten. Mitarbeitende der Wohlfahrtsverbände erbringen diese Beratung mit großem persönlichen Engagement für schutzsuchende Menschen.
 
