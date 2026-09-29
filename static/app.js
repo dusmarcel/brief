@@ -228,9 +228,9 @@ function getLetterBody(member, sender) {
   ].join("\n");
 }
 
-// Development phase: every e-mail is addressed to this test address instead of the MdB.
-// Set to "" to address the MdBs themselves.
-const MAIL_TEST_RECIPIENT = "marcel@aufentha.lt";
+// Test mode: if set, every e-mail is addressed to this address instead of the MdB (the real address
+// goes into the subject). Empty in production, so the e-mails go to the MdBs themselves.
+const MAIL_TEST_RECIPIENT = "";
 
 // Only providers whose compose link can prefill recipient, subject and body are listed (GMX, WEB.DE,
 // t-online, iCloud, Proton etc. have none); everyone else uses "other" and the copy buttons.

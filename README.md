@@ -110,7 +110,7 @@ Aufgeführt sind nur Anbieter, deren Webmailer sich über einen Link mit Empfän
 
 Einige Mailprogramme (insbesondere Outlook unter Windows) kürzen sehr lange `mailto:`-Links; dann hilft „Text kopieren“. Für Personen ohne E-Mail-Adresse wird, soweit vorhanden, auf das Kontaktformular verwiesen.
 
-**Testbetrieb:** Während der Entwicklung sind alle E-Mails an eine Testadresse adressiert statt an die Abgeordneten. Die eigentliche Adresse steht im Betreff (`[Test, eigentlich an …]`), und Schritt 3 zeigt einen Hinweis. Die Testadresse ist die Konstante `MAIL_TEST_RECIPIENT` in `static/app.js`; ist sie leer (`""`), gehen die E-Mails an die Abgeordneten.
+**Testbetrieb:** Die E-Mails sind an die Abgeordneten adressiert. Zum Testen lässt sich in `static/app.js` die Konstante `MAIL_TEST_RECIPIENT` auf eine Testadresse setzen. Dann sind alle E-Mails an diese Adresse gerichtet, die eigentliche Adresse steht im Betreff (`[Test, eigentlich an …]`), und Schritt 3 zeigt einen Hinweis. Im Normalbetrieb ist die Konstante leer (`""`).
 
 ## E-Mail-Adressen
 
